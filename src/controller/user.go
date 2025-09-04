@@ -8,13 +8,11 @@ import (
 	"Thor/src/request"
 	"Thor/src/services"
 	"Thor/tools"
-	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 )
 
 func init() {
-	fmt.Println("insert route")
 	ctx.Routes = append(ctx.Routes, func(r *gin.Engine) {
 		group1 := r.Group("/user")
 		group1.POST("/register", Register)

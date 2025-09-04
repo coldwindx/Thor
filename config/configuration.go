@@ -8,4 +8,5 @@ type Configuration struct {
 	Database    Database    `mapstructure:"database" json:"database" yaml:"database"`
 	Redis       Redis       `mapstructure:"redis" json:"redis" yaml:"redis"`
 	Jwt         Jwt         `mapstructure:"jwt" json:"jwt" yaml:"jwt"`
+	RabbitMq    RabbitMq    `mapstructure:"rabbitmq" json:"rabbitmq" yaml:"rabbitmq"`
 }

@@ -9,10 +9,10 @@ import (
 	"strconv"
 )
 
-func init() {
-	v := &RedisInitializer{name: "redis", order: 3}
-	Manager[v.name] = v
-}
+//func init() {
+//	v := &RedisInitializer{name: "redis", order: 3}
+//	Manager[v.name] = v
+//}
 
 type RedisInitializer struct {
 	name  string

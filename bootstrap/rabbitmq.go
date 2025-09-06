@@ -10,10 +10,10 @@ import (
 	"strconv"
 )
 
-func init() {
-	v := &RabbitMqInitializer{name: "rabbit", order: 100}
-	Manager[v.name] = v
-}
+//func init() {
+//	v := &RabbitMqInitializer{name: "rabbit", order: 100}
+//	Manager[v.name] = v
+//}
 
 type RabbitMqInitializer struct {
 	name  string

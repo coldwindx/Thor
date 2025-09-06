@@ -15,10 +15,10 @@ import (
 	"time"
 )
 
-func init() {
-	v := &DatabaseInitializer{name: "mysql", order: 100}
-	Manager[v.name] = v
-}
+//func init() {
+//	v := &DatabaseInitializer{name: "mysql", order: 100}
+//	Manager[v.name] = v
+//}
 
 type DatabaseInitializer struct {
 	name  string

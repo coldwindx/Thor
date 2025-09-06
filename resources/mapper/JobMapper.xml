@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://raw.githubusercontent.com/zhuxiujia/GoMybatis/master/mybatis-3-mapper.dtd">
+<mapper>
+    <resultMap id="BaseResultMap" tables="t_job">
+        <id column="id" langType="long"/>
+        <result column="name" langType="string"/>
+        <result column="task_id" langType="long"/>
+        <result column="input" langType="string"/>
+        <result column="output" langType="string"/>
+        <result column="options" langType="string"/>
+        <result column="retry" langType="int"/>
+        <result column="awaken_at" langType="time.Time"/>
+        <result column="created_at" langType="time.Time"/>
+        <result column="updated_at" langType="time.Time"/>
+        <result column="deleted" langType="int" logic_enable="true" logic_undelete="0" logic_deleted="1"/>
+    </resultMap>
+
+    <selectTemplate id="SelectTemplate" wheres="name?name = #{name}"/>
+    <select id="Query">
+        select * from t_job
+        <where>
+            deleted = 0
+            <if test="name != nil and name != ''">and name = #{name}</if>
+        </where>
+    </select>
+</mapper>

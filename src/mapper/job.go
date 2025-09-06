@@ -15,6 +15,6 @@ func init() {
 var JobMapper = new(jobMapper)
 
 type jobMapper struct {
-	SelectTemplate func(name string) ([]models.Job, error) `args:"name"`
-	Query          func(job models.Job) ([]models.Job, error)
+	Insert func(job models.Job) (int, error)
+	Query  func(jobQuery models.JobQuery) ([]models.Job, error)
 }

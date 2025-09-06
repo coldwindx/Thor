@@ -13,12 +13,41 @@
         <result column="awaken_at" langType="time.Time"/>
         <result column="created_at" langType="time.Time"/>
         <result column="updated_at" langType="time.Time"/>
-        <result column="deleted" langType="int" logic_enable="true" logic_undelete="0" logic_deleted="1"/>
+        <result column="deleted" langType="bool" logic_enable="true" logic_undelete="0" logic_deleted="1"/>
     </resultMap>
 
-    <selectTemplate id="SelectTemplate" wheres="name?name = #{name}"/>
+    <sql id="columns">id, name, task_id, input, output, options, retry, awaken_at, created_at, updated_at, deleted</sql>
+    
+    <insert id="Insert" useGeneratedKeys="true">
+        insert into t_job
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="name != nil and name != ''">name,</if>
+            <if test="taskId != 0">task_id,</if>
+            <if test="input != nil and input != ''">input,</if>
+            <if test="output != nil and output != ''">output,</if>
+            <if test="options != nil and options != ''">options,</if>
+            <if test="retry != 0">retry,</if>
+            <if test="not awakenAt.IsZero()">awaken_at,</if>
+            <if test="not createdAt.IsZero()">created_at,</if>
+            <if test="not updatedAt.IsZero()">updated_at,</if>
+        </trim>
+        values
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="name != nil and name != ''">#{name},</if>
+            <if test="taskId != 0">#{task_id},</if>
+            <if test="input != nil and input != ''">#{input},</if>
+            <if test="output != nil and output != ''">#{output},</if>
+            <if test="options != nil and options != ''">#{options},</if>
+            <if test="retry != 0">#{retry},</if>
+            <if test="not awakenAt.IsZero()">#{awaken_at},</if>
+            <if test="not createdAt.IsZero()">#{created_at},</if>
+            <if test="not updatedAt.IsZero()">#{updated_at},</if>
+        </trim>
+    </insert>
+    
     <select id="Query">
-        select * from t_job
+        select <include refid="columns"/>
+        from t_job
         <where>
             deleted = 0
             <if test="name != nil and name != ''">and name = #{name}</if>

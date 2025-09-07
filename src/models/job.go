@@ -10,6 +10,7 @@ type Job struct {
 	Output    string    `json:"output"`
 	Options   string    `json:"options"`
 	Retry     int       `json:"retry"`
+	Status    int       `json:"status"`
 	AwakenAt  time.Time `json:"awaken_at"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
@@ -24,6 +25,7 @@ type JobQuery struct {
 	Output    string    `json:"output"`
 	Options   string    `json:"options"`
 	Retry     int       `json:"retry"`
+	Status    int       `json:"status"`
 	AwakenAt  time.Time `json:"awaken_at"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`

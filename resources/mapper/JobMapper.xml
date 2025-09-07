@@ -46,7 +46,9 @@
             #{updated_at},
         </trim>
     </insert>
-    
+
+    <deleteTemplate id="Delete" wheres="id?id = #{id}"/>
+
     <select id="Query">
         select <include refid="columns"/>
         from t_job

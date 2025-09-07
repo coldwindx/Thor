@@ -16,5 +16,6 @@ var JobMapper = new(jobMapper)
 
 type jobMapper struct {
 	Insert func(job models.Job) (int, error)
+	Delete func(jobQuery models.JobQuery) (int, error)
 	Query  func(jobQuery models.JobQuery) ([]models.Job, error)
 }

@@ -14,6 +14,7 @@ import (
 func init() {
 	ctx.Routes = append(ctx.Routes, func(r *gin.Engine) {
 		ctx.Router.POST("/job/insert", Insert)
+		ctx.Router.POST("/job/delete", Delete)
 		ctx.Router.POST("/job/query", Query)
 	})
 }
@@ -32,6 +33,24 @@ func Insert(c *gin.Context) {
 		return
 	}
 	common.Success(c, job)
+}
+
+func Delete(c *gin.Context) {
+	var form request.JobDeleteReq
+	if err := c.ShouldBindJSON(&form); nil != err {
+		common.Fail(c, common.Errors.ValidateError.Code, tools.GetErrorMsg(form, err))
+		return
+	}
+
+	var query models.JobQuery
+	_ = deepcopier.Copy(&form).To(&query)
+	jobs, err := services.JobService.Delete(query)
+
+	if nil != err {
+		common.Fail(c, common.Errors.BusinessError.Code, err.Error())
+		return
+	}
+	common.Success(c, jobs)
 }
 
 func Query(c *gin.Context) {

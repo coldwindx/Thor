@@ -17,6 +17,10 @@ func (it *jobService) Insert(job models.Job) (int, error) {
 	return mapper.JobMapper.Insert(job)
 }
 
+func (it *jobService) Delete(query models.JobQuery) (int, error) {
+	return mapper.JobMapper.Delete(query)
+}
+
 func (it *jobService) Query(query models.JobQuery) ([]models.Job, error) {
 	return mapper.JobMapper.Query(query)
 }

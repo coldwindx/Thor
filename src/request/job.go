@@ -31,3 +31,13 @@ func (JobQueryReq) GetValidateMessage() tools.ValidatorMessages {
 		"name.required": "Job名称不能为空",
 	}
 }
+
+type JobDeleteReq struct {
+	Id int64 `json:"id" form:"id" binding:"required"`
+}
+
+func (JobDeleteReq) GetValidateMessage() tools.ValidatorMessages {
+	return tools.ValidatorMessages{
+		"id.required": "ID不能为空",
+	}
+}

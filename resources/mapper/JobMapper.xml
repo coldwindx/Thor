@@ -21,27 +21,29 @@
     <insert id="Insert" useGeneratedKeys="true">
         insert into t_job
         <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != 0">id,</if>
             <if test="name != nil and name != ''">name,</if>
-            <if test="taskId != 0">task_id,</if>
+            <if test="task_id != 0">task_id,</if>
             <if test="input != nil and input != ''">input,</if>
             <if test="output != nil and output != ''">output,</if>
             <if test="options != nil and options != ''">options,</if>
             <if test="retry != 0">retry,</if>
-            <if test="not awakenAt.IsZero()">awaken_at,</if>
-            <if test="not createdAt.IsZero()">created_at,</if>
-            <if test="not updatedAt.IsZero()">updated_at,</if>
+            awaken_at,
+            created_at,
+            updated_at,
         </trim>
         values
         <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != 0">#{id},</if>
             <if test="name != nil and name != ''">#{name},</if>
-            <if test="taskId != 0">#{task_id},</if>
+            <if test="task_id != 0">#{task_id},</if>
             <if test="input != nil and input != ''">#{input},</if>
             <if test="output != nil and output != ''">#{output},</if>
             <if test="options != nil and options != ''">#{options},</if>
             <if test="retry != 0">#{retry},</if>
-            <if test="not awakenAt.IsZero()">#{awaken_at},</if>
-            <if test="not createdAt.IsZero()">#{created_at},</if>
-            <if test="not updatedAt.IsZero()">#{updated_at},</if>
+            #{awaken_at},
+            #{created_at},
+            #{updated_at},
         </trim>
     </insert>
     

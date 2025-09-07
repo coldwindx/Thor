@@ -1,6 +1,7 @@
 package ctx
 
 import (
+	"github.com/bwmarrin/snowflake"
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
 	"github.com/streadway/amqp"
@@ -14,6 +15,9 @@ type MybatisMapperBind struct {
 	XmlFile string `json:"xml_file"`
 	Mapper  any    `json:"mapper"`
 }
+
+// 雪花算法ID
+var Snowflake *snowflake.Node
 
 var Statik http.FileSystem
 var Logger *zap.Logger

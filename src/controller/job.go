@@ -27,7 +27,7 @@ func Insert(c *gin.Context) {
 	}
 	var job models.Job
 	_ = deepcopier.Copy(&form).To(&job)
-	_, err := services.JobService.Insert(job)
+	_, err := services.JobService.Insert(&job)
 	if nil != err {
 		common.Fail(c, common.Errors.BusinessError.Code, err.Error())
 		return

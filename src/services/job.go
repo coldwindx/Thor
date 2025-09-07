@@ -12,9 +12,9 @@ type jobService struct {
 
 var JobService = new(jobService)
 
-func (it *jobService) Insert(job models.Job) (int, error) {
-	it.beforeInsert(&job)
-	return mapper.JobMapper.Insert(job)
+func (it *jobService) Insert(job *models.Job) (int, error) {
+	it.beforeInsert(job)
+	return mapper.JobMapper.Insert(*job)
 }
 
 func (it *jobService) Delete(query models.JobQuery) (int, error) {

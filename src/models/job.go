@@ -1,6 +1,8 @@
 package models
 
-import "time"
+import (
+	"time"
+)
 
 type Job struct {
 	Id        int64     `json:"id"`

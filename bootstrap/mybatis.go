@@ -35,7 +35,7 @@ func (ts *MybatisInitializer) Initialize() {
 	if err != nil {
 		panic("err: " + err.Error())
 	}
-
+	
 	dbConfig := config.Config.Database
 	if len(dbConfig.Database) == 0 {
 		return

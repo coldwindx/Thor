@@ -5,7 +5,7 @@ import "time"
 type Task struct {
 	Id        int64     `json:"id"`
 	Pipeline  string    `json:"pipeline"`
-	DagStr    string    `json:"dag_str"`
+	Dag       string    `json:"dag"`
 	Input     string    `json:"input"`
 	Output    string    `json:"output"`
 	Options   string    `json:"options"`

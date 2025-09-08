@@ -5,6 +5,7 @@ import (
 	"Thor/ctx"
 	// 显式调用controller层的init函数，否则路由无法注入
 	_ "Thor/src/controller"
+	_ "Thor/src/services"
 	"context"
 	"errors"
 	"fmt"
@@ -59,6 +60,12 @@ func Run() {
 			log.Fatalf("listen: %s\n", err)
 		}
 	}()
+	// step 初始化Bean
+	fmt.Println("init bean")
+	err := ctx.Beans.Populate()
+	if err != nil {
+		panic("初始化Bean失败: " + err.Error())
+	}
 	// step 初始化路由
 	fmt.Println("init route")
 	for _, route := range ctx.Routes {

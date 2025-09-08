@@ -4,6 +4,8 @@ import (
 	"Thor/ctx"
 	"Thor/src/mapper"
 	"Thor/src/models"
+	"Thor/utils"
+	"fmt"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/samber/lo"
 	"io"
@@ -11,12 +13,18 @@ import (
 	"time"
 )
 
-var TaskService = new(taskService)
-
-type taskService struct {
+func init() {
+	fmt.Println("init bean: TaskServiceImpl...")
+	var TaskServiceImpl = new(TaskService)
+	utils.ScanInject("TaskServiceImpl", TaskServiceImpl)
+	//GoMybatis.AopProxyService(TaskServiceImpl, &ctx.MybatisEngine)
 }
 
-func (it *taskService) Create(task *models.Task) (int, error) {
+type TaskService struct {
+	TaskMapper *mapper.TaskMapper `inject:"TaskMapperImpl"`
+}
+
+func (it *TaskService) Create(task *models.Task) (int, error) {
 	it.beforeInsert(task)
 	// read pipelines.json
 	pipelines, err := it.parsePipeline()
@@ -55,10 +63,17 @@ func (it *taskService) Create(task *models.Task) (int, error) {
 		return 0, err
 	}
 
-	return mapper.TaskMapper.Insert(*task)
+	// 事务
+	tx, err := ctx.DefaultSqlDB.Begin()
+	if err != nil {
+		return 0, err
+	}
+	_, _ = it.TaskMapper.Insert(*task)
+	err = tx.Commit()
+	return 0, err
 }
 
-func (it *taskService) beforeInsert(task *models.Task) {
+func (it *TaskService) beforeInsert(task *models.Task) {
 	task.Id = ctx.Snowflake.Generate().Int64()
 	t := time.Now()
 	if task.CreatedAt.IsZero() {
@@ -69,7 +84,7 @@ func (it *taskService) beforeInsert(task *models.Task) {
 	}
 }
 
-func (it *taskService) parsePipeline() ([]models.Pipeline, error) {
+func (it *TaskService) parsePipeline() ([]models.Pipeline, error) {
 	file, err := ctx.Statik.Open("/pipelines.json")
 	if err != nil {
 		return nil, err

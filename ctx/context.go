@@ -1,7 +1,9 @@
 package ctx
 
 import (
+	"database/sql"
 	"github.com/bwmarrin/snowflake"
+	"github.com/facebookgo/inject"
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
 	"github.com/streadway/amqp"
@@ -25,6 +27,7 @@ var Db *gorm.DB
 
 var MybatisEngine GoMybatis.GoMybatisEngine
 var MybatisMapperBinds = make([]MybatisMapperBind, 0)
+var DefaultSqlDB *sql.DB
 
 // var MybatisMapperBinds = make([]func(), 0)
 var Redis *redis.Client
@@ -33,3 +36,6 @@ var RabbitChannel *amqp.Channel
 
 var Router *gin.Engine
 var Routes = make([]func(*gin.Engine), 0)
+
+// Bean 容器
+var Beans = inject.Graph{}

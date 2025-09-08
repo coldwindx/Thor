@@ -1,8 +1,11 @@
 package job
 
+import "fmt"
+
 func init() {
 	executor := TaskInputJobExecutor{}
 	JobScheduler.ExecutorManager[executor.GetName()] = &executor
+	fmt.Println("init task_input_job")
 }
 
 type TaskInputJobExecutor struct {
@@ -10,5 +13,5 @@ type TaskInputJobExecutor struct {
 }
 
 func (it *TaskInputJobExecutor) GetName() string {
-	return "task_input_executor"
+	return "task_input_job"
 }

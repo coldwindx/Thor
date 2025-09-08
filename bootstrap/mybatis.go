@@ -35,21 +35,20 @@ func (ts *MybatisInitializer) Initialize() {
 	if err != nil {
 		panic("err: " + err.Error())
 	}
-	
+
 	dbConfig := config.Config.Database
 	if len(dbConfig.Database) == 0 {
 		return
 	}
 	dsn := dbConfig.UserName + ":" + dbConfig.Password + "@tcp(" + dbConfig.Host + ":" + strconv.Itoa(dbConfig.Port) + ")/" + dbConfig.Database + "?charset=" + dbConfig.Charset + "&parseTime=True&loc=Local"
 	ctx.MybatisEngine = GoMybatis.GoMybatisEngine{}.New()
-	db, err := ctx.MybatisEngine.Open("mysql", dsn)
+	ctx.DefaultSqlDB, err = ctx.MybatisEngine.Open("mysql", dsn)
 	if err != nil {
 		_ = fmt.Errorf("数据库链接失败, err: %v\n", err)
 		return
 	}
-	db.SetMaxIdleConns(dbConfig.MaxIdleConns)
-	db.SetMaxOpenConns(dbConfig.MaxOpenConns)
-
+	ctx.DefaultSqlDB.SetMaxIdleConns(dbConfig.MaxIdleConns)
+	ctx.DefaultSqlDB.SetMaxOpenConns(dbConfig.MaxOpenConns)
 	// step 绑定xml与mapper
 	for _, bind := range ctx.MybatisMapperBinds {
 		// 加载xml配置文件

@@ -1,25 +1,42 @@
 package job
 
 import (
+	"Thor/src/mapper"
 	"Thor/utils"
 	"fmt"
 )
 
-var JobSchedulerImpl = &JobScheduler{manager: make(map[string]IJobExecutor)}
+var SchedulerImpl = &Scheduler{
+	manager: make(map[string]IJobExecutor),
+	//JobMapper: mapper.JobMapperImpl,
+}
 
 func init() {
 	fmt.Println("init job scheduler")
-	utils.ScanInject("JobScheduler", JobSchedulerImpl)
+	utils.ScanInject("JobScheduler", SchedulerImpl)
 }
 
-type JobScheduler struct {
-	manager map[string]IJobExecutor
+type Scheduler struct {
+	manager   map[string]IJobExecutor
+	JobMapper *mapper.JobMapper `inject:"JobMapper"`
 }
 
-func (scheduler *JobScheduler) Register(executor IJobExecutor) {
+func (scheduler *Scheduler) Register(executor IJobExecutor) {
 	scheduler.manager[executor.GetName()] = executor
 }
 
-func (scheduler *JobScheduler) GetExecutor(name string) IJobExecutor {
+func (scheduler *Scheduler) GetExecutor(name string) IJobExecutor {
 	return scheduler.manager[name]
+}
+
+func (scheduler *Scheduler) Unlock(id int64) error {
+	return nil
+}
+
+func (scheduler *Scheduler) Start(id int64) error {
+	return nil
+}
+
+func (scheduler *Scheduler) Callback(id int64) error {
+	return nil
 }

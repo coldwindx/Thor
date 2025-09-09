@@ -15,7 +15,7 @@ import (
 func init() {
 	var TaskControllerImpl = new(TaskController)
 	// bean注入
-	utils.ScanInject("TaskControllerImpl", TaskControllerImpl)
+	utils.ScanInject("TaskController", TaskControllerImpl)
 	// 路由注入
 	ctx.Routes = append(ctx.Routes, func(r *gin.Engine) {
 		ctx.Router.POST("/task/create", TaskControllerImpl.Create)

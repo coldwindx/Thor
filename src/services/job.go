@@ -4,28 +4,42 @@ import (
 	"Thor/ctx"
 	"Thor/src/mapper"
 	"Thor/src/models"
+	"Thor/utils"
 	"time"
 )
 
-type jobService struct {
+func init() {
+	var impl = new(JobServiceImpl)
+	impl.JobService.Insert = impl.Insert
+	impl.JobService.Delete = impl.Delete
+	impl.JobService.Query = impl.Query
+	utils.ScanInject("JobServiceImpl", impl)
 }
 
-var JobService = new(jobService)
+type JobService struct {
+	Insert func(job *models.Job) (int, error)
+	Delete func(query models.JobQuery) (int, error)
+	Query  func(query models.JobQuery) ([]models.Job, error)
+}
 
-func (it *jobService) Insert(job *models.Job) (int, error) {
+type JobServiceImpl struct {
+	JobService `bean:"JobService"`
+}
+
+func (it *JobServiceImpl) Insert(job *models.Job) (int, error) {
 	it.beforeInsert(job)
 	return mapper.JobMapperImpl.Insert(*job)
 }
 
-func (it *jobService) Delete(query models.JobQuery) (int, error) {
+func (it *JobServiceImpl) Delete(query models.JobQuery) (int, error) {
 	return mapper.JobMapperImpl.Delete(query)
 }
 
-func (it *jobService) Query(query models.JobQuery) ([]models.Job, error) {
+func (it *JobServiceImpl) Query(query models.JobQuery) ([]models.Job, error) {
 	return mapper.JobMapperImpl.Query(query)
 }
 
-func (it *jobService) beforeInsert(job *models.Job) {
+func (it *JobServiceImpl) beforeInsert(job *models.Job) {
 	job.Id = ctx.Snowflake.Generate().Int64()
 	t := time.Now()
 	if job.CreatedAt.IsZero() {

@@ -7,19 +7,26 @@ import (
 	"Thor/src/request"
 	"Thor/src/services"
 	"Thor/tools"
+	"Thor/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/ulule/deepcopier"
 )
 
 func init() {
+	var impl = new(JobController)
+	utils.ScanInject("JobController", impl)
 	ctx.Routes = append(ctx.Routes, func(r *gin.Engine) {
-		ctx.Router.POST("/job/insert", Insert)
-		ctx.Router.POST("/job/delete", Delete)
-		ctx.Router.POST("/job/query", Query)
+		ctx.Router.POST("/job/insert", impl.Insert)
+		ctx.Router.POST("/job/delete", impl.Delete)
+		ctx.Router.POST("/job/query", impl.Query)
 	})
 }
 
-func Insert(c *gin.Context) {
+type JobController struct {
+	JobService *services.JobService `inject:"JobService"`
+}
+
+func (it *JobController) Insert(c *gin.Context) {
 	var form request.JobInsertReq
 	if err := c.ShouldBindJSON(&form); nil != err {
 		common.Fail(c, common.Errors.ValidateError.Code, tools.GetErrorMsg(form, err))
@@ -27,7 +34,7 @@ func Insert(c *gin.Context) {
 	}
 	var job models.Job
 	_ = deepcopier.Copy(&form).To(&job)
-	_, err := services.JobService.Insert(&job)
+	_, err := it.JobService.Insert(&job)
 	if nil != err {
 		common.Fail(c, common.Errors.BusinessError.Code, err.Error())
 		return
@@ -35,7 +42,7 @@ func Insert(c *gin.Context) {
 	common.Success(c, job)
 }
 
-func Delete(c *gin.Context) {
+func (it *JobController) Delete(c *gin.Context) {
 	var form request.JobDeleteReq
 	if err := c.ShouldBindJSON(&form); nil != err {
 		common.Fail(c, common.Errors.ValidateError.Code, tools.GetErrorMsg(form, err))
@@ -44,7 +51,7 @@ func Delete(c *gin.Context) {
 
 	var query models.JobQuery
 	_ = deepcopier.Copy(&form).To(&query)
-	jobs, err := services.JobService.Delete(query)
+	jobs, err := it.JobService.Delete(query)
 
 	if nil != err {
 		common.Fail(c, common.Errors.BusinessError.Code, err.Error())
@@ -53,7 +60,7 @@ func Delete(c *gin.Context) {
 	common.Success(c, jobs)
 }
 
-func Query(c *gin.Context) {
+func (it *JobController) Query(c *gin.Context) {
 	var form request.JobQueryReq
 	if err := c.ShouldBindJSON(&form); nil != err {
 		common.Fail(c, common.Errors.ValidateError.Code, tools.GetErrorMsg(form, err))
@@ -62,7 +69,7 @@ func Query(c *gin.Context) {
 
 	var query models.JobQuery
 	_ = deepcopier.Copy(&form).To(&query)
-	jobs, err := services.JobService.Query(query)
+	jobs, err := it.JobService.Query(query)
 
 	if nil != err {
 		common.Fail(c, common.Errors.BusinessError.Code, err.Error())

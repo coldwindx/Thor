@@ -17,13 +17,14 @@ import (
 
 func init() {
 	var impl = new(TaskServiceImpl)
-	impl.JobScheduler = job.JobSchedulerImpl
-	impl.TaskMapper = mapper.TaskMapperImpl
-	impl.JobMapper = mapper.JobMapperImpl
+	impl.JobScheduler = job.SchedulerImpl
+	//impl.TaskMapper = mapper.TaskMapperImpl
+	//impl.JobMapper = mapper.JobMapperImpl
 	impl.TaskService.Create = impl.Create
 	// bean注入
 	utils.ScanInject("TaskServiceImpl", impl)
-	GoMybatis.AopProxyService(impl, &ctx.MybatisEngine)
+	// aop必须注在接口上
+	GoMybatis.AopProxyService(&impl.TaskService, &ctx.MybatisEngine)
 }
 
 type TaskService struct {
@@ -32,9 +33,9 @@ type TaskService struct {
 
 type TaskServiceImpl struct {
 	TaskService  `bean:"TaskService"`
-	JobScheduler *job.JobScheduler
-	TaskMapper   *mapper.TaskMapper
-	JobMapper    *mapper.JobMapper
+	JobScheduler *job.Scheduler     `inject:"JobScheduler"`
+	TaskMapper   *mapper.TaskMapper `inject:"TaskMapper"`
+	JobMapper    *mapper.JobMapper  `inject:"JobMapper"`
 }
 
 func (it *TaskServiceImpl) Create(task *models.Task) (int, error) {

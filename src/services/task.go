@@ -8,6 +8,7 @@ import (
 	"fmt"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/samber/lo"
+	"github.com/zhuxiujia/GoMybatis"
 	"io"
 	"strings"
 	"time"
@@ -15,16 +16,23 @@ import (
 
 func init() {
 	fmt.Println("init bean: TaskServiceImpl...")
-	var TaskServiceImpl = new(TaskService)
-	utils.ScanInject("TaskServiceImpl", TaskServiceImpl)
-	//GoMybatis.AopProxyService(TaskServiceImpl, &ctx.MybatisEngine)
+	var impl = new(TaskServiceImpl)
+	impl.TaskMapper = mapper.TaskMapperImpl
+	impl.TaskService.Create = impl.Create
+	utils.ScanInject("TaskServiceImpl", impl)
+	GoMybatis.AopProxyService(impl, &ctx.MybatisEngine)
 }
 
 type TaskService struct {
-	TaskMapper *mapper.TaskMapper `inject:"TaskMapperImpl"`
+	Create func(task *models.Task) (int, error) `tx:"" rollback:"error"`
 }
 
-func (it *TaskService) Create(task *models.Task) (int, error) {
+type TaskServiceImpl struct {
+	TaskService `bean:"TaskService"`
+	TaskMapper  *mapper.TaskMapper
+}
+
+func (it *TaskServiceImpl) Create(task *models.Task) (int, error) {
 	it.beforeInsert(task)
 	// read pipelines.json
 	pipelines, err := it.parsePipeline()
@@ -73,7 +81,7 @@ func (it *TaskService) Create(task *models.Task) (int, error) {
 	return 0, err
 }
 
-func (it *TaskService) beforeInsert(task *models.Task) {
+func (it *TaskServiceImpl) beforeInsert(task *models.Task) {
 	task.Id = ctx.Snowflake.Generate().Int64()
 	t := time.Now()
 	if task.CreatedAt.IsZero() {
@@ -84,7 +92,7 @@ func (it *TaskService) beforeInsert(task *models.Task) {
 	}
 }
 
-func (it *TaskService) parsePipeline() ([]models.Pipeline, error) {
+func (it *TaskServiceImpl) parsePipeline() ([]models.Pipeline, error) {
 	file, err := ctx.Statik.Open("/pipelines.json")
 	if err != nil {
 		return nil, err

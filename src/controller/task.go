@@ -23,7 +23,7 @@ func init() {
 }
 
 type TaskController struct {
-	TaskService *services.TaskService `inject:"TaskServiceImpl"`
+	TaskService *services.TaskService `inject:"TaskService"`
 }
 
 func (it *TaskController) Create(c *gin.Context) {

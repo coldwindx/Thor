@@ -2,10 +2,11 @@ package services
 
 import (
 	"Thor/ctx"
+	"Thor/src/handler/job"
 	"Thor/src/mapper"
 	"Thor/src/models"
 	"Thor/utils"
-	"fmt"
+	"errors"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/samber/lo"
 	"github.com/zhuxiujia/GoMybatis"
@@ -15,10 +16,12 @@ import (
 )
 
 func init() {
-	fmt.Println("init bean: TaskServiceImpl...")
 	var impl = new(TaskServiceImpl)
+	impl.JobScheduler = job.JobSchedulerImpl
 	impl.TaskMapper = mapper.TaskMapperImpl
+	impl.JobMapper = mapper.JobMapperImpl
 	impl.TaskService.Create = impl.Create
+	// bean注入
 	utils.ScanInject("TaskServiceImpl", impl)
 	GoMybatis.AopProxyService(impl, &ctx.MybatisEngine)
 }
@@ -28,8 +31,10 @@ type TaskService struct {
 }
 
 type TaskServiceImpl struct {
-	TaskService `bean:"TaskService"`
-	TaskMapper  *mapper.TaskMapper
+	TaskService  `bean:"TaskService"`
+	JobScheduler *job.JobScheduler
+	TaskMapper   *mapper.TaskMapper
+	JobMapper    *mapper.JobMapper
 }
 
 func (it *TaskServiceImpl) Create(task *models.Task) (int, error) {
@@ -41,26 +46,30 @@ func (it *TaskServiceImpl) Create(task *models.Task) (int, error) {
 	}
 	pipe := lo.Filter(pipelines, func(item models.Pipeline, index int) bool { return item.Name == task.Pipeline })[0]
 	// Workflow to DAG
-	var jobs = make(map[string]*models.Job)
+	var jobs = make([]*models.Job, 0)
 	var dag = make(map[string]*models.WorkNode)
 
 	for _, link := range strings.Split(pipe.Workflow, ",") {
 		edges := strings.SplitN(link, "->", 2)
 		for _, edge := range edges {
-			if _, ok := jobs[edge]; ok {
+			if _, ok := dag[edge]; ok {
 				continue
 			}
 
-			job := new(models.Job)
-			job.Id = ctx.Snowflake.Generate().Int64()
-			job.TaskId = task.Id
-			job.Name = edge
-			job.AwakenAt = time.Now()
-			job.CreatedAt = time.Now()
-			job.UpdatedAt = time.Now()
+			j := new(models.Job)
+			j.Id = ctx.Snowflake.Generate().Int64()
+			j.TaskId = task.Id
+			j.Name = edge
+			j.AwakenAt = time.Now()
+			j.CreatedAt = time.Now()
+			j.UpdatedAt = time.Now()
+			jobs = append(jobs, j)
+			dag[j.Name] = &models.WorkNode{JobId: j.Id, JobName: j.Name}
 
-			dag[job.Name] = &models.WorkNode{JobId: job.Id, JobName: job.Name}
-			jobs[job.Name] = job
+			executor := it.JobScheduler.GetExecutor(j.Name)
+			if executor == nil {
+				return 0, errors.New("Job executor not found, " + j.Name)
+			}
 		}
 
 		dag[edges[0]].Next = append(dag[edges[0]].Next, dag[edges[1]].JobId)
@@ -72,13 +81,18 @@ func (it *TaskServiceImpl) Create(task *models.Task) (int, error) {
 	}
 
 	// 事务
-	tx, err := ctx.DefaultSqlDB.Begin()
-	if err != nil {
-		return 0, err
+	lo.ForEach(jobs, func(job *models.Job, index int) {
+		if _, err = it.JobMapper.Insert(*job); err != nil {
+			panic("Job insert error, " + err.Error())
+		}
+	})
+
+	if _, err = it.TaskMapper.Insert(*task); err != nil {
+		if err != nil {
+			panic("Job insert error, " + err.Error())
+		}
 	}
-	_, _ = it.TaskMapper.Insert(*task)
-	err = tx.Commit()
-	return 0, err
+	return 1, nil
 }
 
 func (it *TaskServiceImpl) beforeInsert(task *models.Task) {

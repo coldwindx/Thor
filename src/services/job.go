@@ -14,15 +14,15 @@ var JobService = new(jobService)
 
 func (it *jobService) Insert(job *models.Job) (int, error) {
 	it.beforeInsert(job)
-	return mapper.JobMapper.Insert(*job)
+	return mapper.JobMapperImpl.Insert(*job)
 }
 
 func (it *jobService) Delete(query models.JobQuery) (int, error) {
-	return mapper.JobMapper.Delete(query)
+	return mapper.JobMapperImpl.Delete(query)
 }
 
 func (it *jobService) Query(query models.JobQuery) ([]models.Job, error) {
-	return mapper.JobMapper.Query(query)
+	return mapper.JobMapperImpl.Query(query)
 }
 
 func (it *jobService) beforeInsert(job *models.Job) {

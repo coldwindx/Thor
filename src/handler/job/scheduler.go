@@ -1,7 +1,25 @@
 package job
 
-var JobScheduler = &jobScheduler{ExecutorManager: make(map[string]IJobExecutor)}
+import (
+	"Thor/utils"
+	"fmt"
+)
 
-type jobScheduler struct {
-	ExecutorManager map[string]IJobExecutor
+var JobSchedulerImpl = &JobScheduler{manager: make(map[string]IJobExecutor)}
+
+func init() {
+	fmt.Println("init job scheduler")
+	utils.ScanInject("JobScheduler", JobSchedulerImpl)
+}
+
+type JobScheduler struct {
+	manager map[string]IJobExecutor
+}
+
+func (scheduler *JobScheduler) Register(executor IJobExecutor) {
+	scheduler.manager[executor.GetName()] = executor
+}
+
+func (scheduler *JobScheduler) GetExecutor(name string) IJobExecutor {
+	return scheduler.manager[name]
 }

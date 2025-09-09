@@ -5,16 +5,16 @@ import (
 	"Thor/src/models"
 )
 
+var JobMapperImpl = new(JobMapper)
+
 func init() {
 	ctx.MybatisMapperBinds = append(ctx.MybatisMapperBinds, ctx.MybatisMapperBind{
 		XmlFile: "/mapper/JobMapper.xml",
-		Mapper:  JobMapper,
+		Mapper:  JobMapperImpl,
 	})
 }
 
-var JobMapper = new(jobMapper)
-
-type jobMapper struct {
+type JobMapper struct {
 	Insert func(job models.Job) (int, error)
 	Delete func(jobQuery models.JobQuery) (int, error)
 	Query  func(jobQuery models.JobQuery) ([]models.Job, error)

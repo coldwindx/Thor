@@ -18,8 +18,6 @@ import (
 func init() {
 	var impl = new(TaskServiceImpl)
 	impl.JobScheduler = job.SchedulerImpl
-	//impl.TaskMapper = mapper.TaskMapperImpl
-	//impl.JobMapper = mapper.JobMapperImpl
 	impl.TaskService.Create = impl.Create
 	// bean注入
 	utils.ScanInject("TaskServiceImpl", impl)
@@ -81,19 +79,20 @@ func (it *TaskServiceImpl) Create(task *models.Task) (int, error) {
 		return 0, err
 	}
 
-	// 事务
+	// 数据库动作，后续想办法把事务控制在这个方法里
+	it.create(task, jobs)
+	return 1, nil
+}
+
+func (it *TaskServiceImpl) create(task *models.Task, jobs []*models.Job) {
 	lo.ForEach(jobs, func(job *models.Job, index int) {
-		if _, err = it.JobMapper.Insert(*job); err != nil {
+		if _, err := it.JobMapper.Insert(*job); err != nil {
 			panic("Job insert error, " + err.Error())
 		}
 	})
-
-	if _, err = it.TaskMapper.Insert(*task); err != nil {
-		if err != nil {
-			panic("Job insert error, " + err.Error())
-		}
+	if _, err := it.TaskMapper.Insert(*task); err != nil {
+		panic("Task insert error, " + err.Error())
 	}
-	return 1, nil
 }
 
 func (it *TaskServiceImpl) beforeInsert(task *models.Task) {

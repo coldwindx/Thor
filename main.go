@@ -7,6 +7,8 @@ import (
 	"Thor/bootstrap"
 	"Thor/ctx"
 	_ "Thor/statik"
+	"fmt"
+	"time"
 )
 
 func main() {
@@ -17,6 +19,16 @@ func main() {
 	// step 消息队列
 	//go rabbitmq.Producer()
 	//go rabbitmq.Consumer()
+	// step 定时触发器
+	ticker := time.NewTicker(15 * time.Second)
+	defer ticker.Stop()
+
+	go func(t *time.Ticker) {
+		for {
+			<-t.C
+			fmt.Println("Ticker:", time.Now().Format("2006-01-02 15:04:05"))
+		}
+	}(ticker)
 	// step 启动服务器
 	bootstrap.Run()
 }

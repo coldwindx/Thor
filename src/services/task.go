@@ -4,7 +4,6 @@ import (
 	"Thor/ctx"
 	"Thor/src/handler/job"
 	"Thor/src/manager"
-	"Thor/src/mapper"
 	"Thor/src/models"
 	"Thor/utils"
 	"errors"
@@ -57,7 +56,7 @@ func (it *TaskService) Create(task *models.Task) error {
 
 			executor := it.JobScheduler.GetExecutor(j.Name)
 			if executor == nil {
-				return 0, errors.New("Job executor not found, " + j.Name)
+				return errors.New("Job executor not found, " + j.Name)
 			}
 		}
 
@@ -66,7 +65,7 @@ func (it *TaskService) Create(task *models.Task) error {
 
 	workNodes := lo.MapToSlice(dag, func(_ string, value *models.WorkNode) *models.WorkNode { return value })
 	if task.Dag, err = jsoniter.MarshalToString(workNodes); err != nil {
-		return 0, err
+		return err
 	}
 
 	return it.TaskManager.Create(task, jobs)

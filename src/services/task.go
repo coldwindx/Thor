@@ -3,45 +3,35 @@ package services
 import (
 	"Thor/ctx"
 	"Thor/src/handler/job"
+	"Thor/src/manager"
 	"Thor/src/mapper"
 	"Thor/src/models"
 	"Thor/utils"
 	"errors"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/samber/lo"
-	"github.com/zhuxiujia/GoMybatis"
 	"io"
 	"strings"
 	"time"
 )
 
 func init() {
-	var impl = new(TaskServiceImpl)
-	impl.JobScheduler = job.SchedulerImpl
-	impl.TaskService.Create = impl.Create
+	var impl = new(TaskService)
 	// bean注入
-	utils.ScanInject("TaskServiceImpl", impl)
-	// aop必须注在接口上
-	GoMybatis.AopProxyService(&impl.TaskService, &ctx.MybatisEngine)
+	utils.ScanInject("TaskService", impl)
 }
 
 type TaskService struct {
-	Create func(task *models.Task) (int, error) `tx:"" rollback:"error"`
+	JobScheduler *job.Scheduler       `inject:"JobScheduler"`
+	TaskManager  *manager.TaskManager `inject:"TaskManager"`
 }
 
-type TaskServiceImpl struct {
-	TaskService  `bean:"TaskService"`
-	JobScheduler *job.Scheduler     `inject:"JobScheduler"`
-	TaskMapper   *mapper.TaskMapper `inject:"TaskMapper"`
-	JobMapper    *mapper.JobMapper  `inject:"JobMapper"`
-}
-
-func (it *TaskServiceImpl) Create(task *models.Task) (int, error) {
+func (it *TaskService) Create(task *models.Task) error {
 	it.beforeInsert(task)
 	// read pipelines.json
 	pipelines, err := it.parsePipeline()
 	if err != nil {
-		return 0, err
+		return err
 	}
 	pipe := lo.Filter(pipelines, func(item models.Pipeline, index int) bool { return item.Name == task.Pipeline })[0]
 	// Workflow to DAG
@@ -79,23 +69,10 @@ func (it *TaskServiceImpl) Create(task *models.Task) (int, error) {
 		return 0, err
 	}
 
-	// 数据库动作，后续想办法把事务控制在这个方法里
-	it.create(task, jobs)
-	return 1, nil
+	return it.TaskManager.Create(task, jobs)
 }
 
-func (it *TaskServiceImpl) create(task *models.Task, jobs []*models.Job) {
-	lo.ForEach(jobs, func(job *models.Job, index int) {
-		if _, err := it.JobMapper.Insert(*job); err != nil {
-			panic("Job insert error, " + err.Error())
-		}
-	})
-	if _, err := it.TaskMapper.Insert(*task); err != nil {
-		panic("Task insert error, " + err.Error())
-	}
-}
-
-func (it *TaskServiceImpl) beforeInsert(task *models.Task) {
+func (it *TaskService) beforeInsert(task *models.Task) {
 	task.Id = ctx.Snowflake.Generate().Int64()
 	t := time.Now()
 	if task.CreatedAt.IsZero() {
@@ -106,7 +83,7 @@ func (it *TaskServiceImpl) beforeInsert(task *models.Task) {
 	}
 }
 
-func (it *TaskServiceImpl) parsePipeline() ([]models.Pipeline, error) {
+func (it *TaskService) parsePipeline() ([]models.Pipeline, error) {
 	file, err := ctx.Statik.Open("/pipelines.json")
 	if err != nil {
 		return nil, err

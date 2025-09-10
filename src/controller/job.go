@@ -69,7 +69,7 @@ func (it *JobController) Query(c *gin.Context) {
 
 	var query models.JobQuery
 	_ = deepcopier.Copy(&form).To(&query)
-	jobs, err := it.JobService.Query(query)
+	jobs, err := it.JobService.Query(&query)
 
 	if nil != err {
 		common.Fail(c, common.Errors.BusinessError.Code, err.Error())

@@ -2,6 +2,8 @@ package utils
 
 import (
 	"Thor/ctx"
+	"errors"
+	"github.com/samber/lo"
 	"reflect"
 )
 import "github.com/facebookgo/inject"
@@ -35,4 +37,14 @@ func ScanInject(name string, obj interface{}) {
 	if err != nil {
 		panic("Bean Inject Error. " + err.Error())
 	}
+}
+
+func GetBean[T any](name string) (*T, error) {
+	objs := ctx.Beans.Objects()
+	obj, flag := lo.Find(objs, func(item *inject.Object) bool { return item.Name == name })
+	if !flag {
+		return nil, errors.New("found bean from inject graph error, bean name: " + name)
+	}
+	t := obj.Value.(*T)
+	return t, nil
 }

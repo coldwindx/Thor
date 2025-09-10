@@ -6,7 +6,10 @@ package main
 import (
 	"Thor/bootstrap"
 	"Thor/ctx"
+	"Thor/src/models"
+	"Thor/src/services"
 	_ "Thor/statik"
+	"Thor/utils"
 	"fmt"
 	"time"
 )
@@ -24,9 +27,18 @@ func main() {
 	defer ticker.Stop()
 
 	go func(t *time.Ticker) {
+		bean, err := utils.GetBean[services.JobServiceImpl]("JobServiceImpl")
+		if err != nil {
+			return
+		}
 		for {
 			<-t.C
 			fmt.Println("Ticker:", time.Now().Format("2006-01-02 15:04:05"))
+			query := models.JobQuery{Name: "task_input_job"}
+			_, err = bean.Query(&query)
+			if err != nil {
+				return
+			}
 		}
 	}(ticker)
 	// step 启动服务器

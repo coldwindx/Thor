@@ -59,5 +59,6 @@
             <if test="status != 0">and status = #{status}</if>
             and created_at &gt; #{createdAfter}
         </where>
+        <if test="pageSize &gt; 0">limit ${pageSize}</if>
     </select>
 </mapper>

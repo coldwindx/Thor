@@ -46,4 +46,5 @@ type JobQuery struct {
 	CreatedAfter time.Time `json:"created_after"`
 	UpdatedAt    time.Time `json:"updated_at"`
 	Deleted      int       `json:"deleted"`
+	PageSize     int       `json:"page_size"`
 }

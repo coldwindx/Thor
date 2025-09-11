@@ -24,7 +24,7 @@ type TaskManager struct {
 type TaskManagerImpl struct {
 	TaskManager `bean:"TaskManager"`
 	TaskMapper  *mapper.TaskMapper `inject:"TaskMapper"`
-	JobMapper   *mapper.JobMapper  `inject:"JobMapper"`
+	JobMapper   *mapper.JobMapper  `inject:"JobService"`
 }
 
 func (it *TaskManagerImpl) Create(task *models.Task, jobs []*models.Job) (err error) {

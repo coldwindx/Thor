@@ -48,6 +48,7 @@ func (it *TaskService) Create(task *models.Task) error {
 			j.Id = ctx.Snowflake.Generate().Int64()
 			j.TaskId = task.Id
 			j.Name = edge
+			j.Status = int(models.INITING)
 			j.AwakenAt = time.Now()
 			j.CreatedAt = time.Now()
 			j.UpdatedAt = time.Now()

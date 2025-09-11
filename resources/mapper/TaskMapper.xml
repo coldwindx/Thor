@@ -42,4 +42,12 @@
         </trim>
     </insert>
 
+    <select id="Query">
+        select <include refid="columns"/> from t_task
+        <where>
+            deleted = 0
+            <if test="id != 0">and id = #{id}</if>
+        </where>
+        <if test="pageSize &gt; 0">limit #{pageSize}</if>
+    </select>
 </mapper>

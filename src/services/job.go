@@ -4,7 +4,6 @@ import (
     "Thor/ctx"
     "Thor/src/mapper"
     "Thor/src/models"
-    "Thor/utils/inject"
     "time"
 )
 
@@ -13,7 +12,6 @@ func init() {
     impl.JobService.Insert = impl.Insert
     impl.JobService.Delete = impl.Delete
     impl.JobService.Query = impl.Query
-    inject.ScanInject("JobServiceImpl", impl)
 }
 
 type JobService struct {

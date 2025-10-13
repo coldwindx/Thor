@@ -3,20 +3,16 @@ package controller
 import (
 	"Thor/common"
 	"Thor/ctx"
-	"Thor/src/handler/job"
 	"Thor/src/models"
 	"Thor/src/request"
 	"Thor/src/services"
 	"Thor/tools"
-	"Thor/utils/inject"
-
 	"github.com/gin-gonic/gin"
 	"github.com/ulule/deepcopier"
 )
 
 func init() {
 	var impl = new(JobController)
-	inject.ScanInject("JobController", impl)
 	ctx.Routes = append(ctx.Routes, func(r *gin.Engine) {
 		ctx.Router.POST("/job/insert", impl.Insert)
 		ctx.Router.POST("/job/delete", impl.Delete)
@@ -26,8 +22,7 @@ func init() {
 }
 
 type JobController struct {
-	JobService   *services.JobService `inject:"JobService"`
-	JobScheduler *job.Scheduler       `inject:""`
+	JobService *services.JobService `inject:"JobService"`
 }
 
 func (it *JobController) Insert(c *gin.Context) {

@@ -2,11 +2,8 @@ package services
 
 import (
 	"Thor/ctx"
-	"Thor/src/handler/job"
 	"Thor/src/manager"
 	"Thor/src/models"
-	"Thor/utils/inject"
-	"errors"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/samber/lo"
 	"io"
@@ -15,14 +12,11 @@ import (
 )
 
 func init() {
-	var impl = new(TaskService)
-	// bean注入
-	inject.ScanInject("TaskService", impl)
+
 }
 
 type TaskService struct {
-	JobScheduler *job.Scheduler       `inject:"JobScheduler"`
-	TaskManager  *manager.TaskManager `inject:"TaskManager"`
+	TaskManager *manager.TaskManager `inject:"TaskManager"`
 }
 
 func (it *TaskService) Create(task *models.Task) error {
@@ -56,10 +50,6 @@ func (it *TaskService) Create(task *models.Task) error {
 			jobMap[j.Name] = j
 			dag[j.Name] = &models.WorkNode{JobId: j.Id, JobName: j.Name}
 
-			executor := it.JobScheduler.GetExecutor(j.Name)
-			if executor == nil {
-				return errors.New("Job executor not found, " + j.Name)
-			}
 		}
 
 		dag[edges[0]].Next = append(dag[edges[0]].Next, dag[edges[1]].JobId)

@@ -4,26 +4,25 @@ import (
     "Thor/ctx"
     "Thor/src/mapper"
     "Thor/src/models"
+    "fmt"
     "time"
 )
 
 func init() {
-    var impl = new(JobServiceImpl)
-    impl.JobService.Insert = impl.Insert
-    impl.JobService.Delete = impl.Delete
-    impl.JobService.Query = impl.Query
+
 }
 
-type JobService struct {
-    Insert func(job *models.Job) (int, error)
-    Delete func(query models.JobQuery) (int, error)
-    Query  func(query *models.JobQuery) ([]models.Job, error)
+type JobService interface {
+    Test() error
 }
 
 type JobServiceImpl struct {
-    JobService `bean:"JobService"`
 }
 
+func (it *JobServiceImpl) Test() error {
+    fmt.Println("Testing job service")
+    return nil
+}
 func (it *JobServiceImpl) Insert(job *models.Job) (int, error) {
     it.beforeInsert(job)
     return mapper.JobMapperImpl.Insert(*job)

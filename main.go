@@ -7,6 +7,7 @@ import (
 	"Thor/bootstrap"
 	"Thor/ctx"
 	_ "Thor/statik"
+	_ "Thor/test"
 	"time"
 )
 

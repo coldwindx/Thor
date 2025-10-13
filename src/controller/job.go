@@ -22,7 +22,7 @@ func init() {
 }
 
 type JobController struct {
-	JobService *services.JobService `inject:"JobService"`
+	JobService *services.JobServiceImpl `inject:"JobService"`
 }
 
 func (it *JobController) Insert(c *gin.Context) {

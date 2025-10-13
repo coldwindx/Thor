@@ -1,17 +1,16 @@
 package mapper
 
 import (
-	"Thor/ctx"
 	"Thor/src/models"
 )
 
 func init() {
-	var TaskMapperImpl = new(TaskMapper)
-	// 注入mapper
-	ctx.MybatisMapperBinds = append(ctx.MybatisMapperBinds, ctx.MybatisMapperBind{
-		XmlFile: "/mapper/TaskMapper.xml",
-		Mapper:  TaskMapperImpl,
-	})
+	//var TaskMapperImpl = new(TaskMapper)
+	//// 注入mapper
+	//ctx.MybatisMapperBinds = append(ctx.MybatisMapperBinds, ctx.MybatisMapperBind{
+	//	XmlFile: "/mapper/TaskMapper.xml",
+	//	Mapper:  TaskMapperImpl,
+	//})
 }
 
 type TaskMapper struct {

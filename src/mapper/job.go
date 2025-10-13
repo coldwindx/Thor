@@ -1,18 +1,17 @@
 package mapper
 
 import (
-	"Thor/ctx"
 	"Thor/src/models"
 )
 
 var JobMapperImpl = new(JobMapper)
 
 func init() {
-	// 注入mapper
-	ctx.MybatisMapperBinds = append(ctx.MybatisMapperBinds, ctx.MybatisMapperBind{
-		XmlFile: "/mapper/JobMapper.xml",
-		Mapper:  JobMapperImpl,
-	})
+	//// 注入mapper
+	//ctx.MybatisMapperBinds = append(ctx.MybatisMapperBinds, ctx.MybatisMapperBind{
+	//	XmlFile: "/mapper/JobMapper.xml",
+	//	Mapper:  JobMapperImpl,
+	//})
 }
 
 type JobMapper struct {

@@ -10,7 +10,7 @@ import (
 	"Thor/src/models"
 	"Thor/src/services"
 	_ "Thor/statik"
-	"Thor/utils"
+	"Thor/utils/inject"
 	"fmt"
 	"github.com/samber/lo"
 	"time"
@@ -31,11 +31,11 @@ func main() {
 	go func(t *time.Ticker) {
 		var err error
 		var jobService *services.JobServiceImpl
-		if jobService, err = utils.GetBean[services.JobServiceImpl]("JobService"); err != nil {
+		if jobService, err = inject.GetBean[services.JobServiceImpl]("JobService"); err != nil {
 			return
 		}
 		var scheduler *job.Scheduler
-		if scheduler, err = utils.GetBean[job.Scheduler]("JobScheduler"); err != nil {
+		if scheduler, err = inject.GetBean[job.Scheduler]("JobScheduler"); err != nil {
 			return
 		}
 

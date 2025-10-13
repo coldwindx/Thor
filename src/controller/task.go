@@ -7,7 +7,7 @@ import (
 	"Thor/src/request"
 	"Thor/src/services"
 	"Thor/tools"
-	"Thor/utils"
+	"Thor/utils/inject"
 	"github.com/gin-gonic/gin"
 	"github.com/ulule/deepcopier"
 )
@@ -15,7 +15,7 @@ import (
 func init() {
 	var TaskControllerImpl = new(TaskController)
 	// bean注入
-	utils.ScanInject("TaskController", TaskControllerImpl)
+	inject.ScanInject("TaskController", TaskControllerImpl)
 	// 路由注入
 	ctx.Routes = append(ctx.Routes, func(r *gin.Engine) {
 		ctx.Router.POST("/task/create", TaskControllerImpl.Create)

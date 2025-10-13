@@ -3,7 +3,7 @@ package job
 import (
 	"Thor/src/mapper"
 	"Thor/src/models"
-	"Thor/utils"
+	"Thor/utils/inject"
 	"errors"
 	"fmt"
 	jsoniter "github.com/json-iterator/go"
@@ -14,7 +14,7 @@ var SchedulerImpl = &Scheduler{manager: make(map[string]IJobExecutor)}
 
 func init() {
 	fmt.Println("init job scheduler")
-	utils.ScanInject("JobScheduler", SchedulerImpl)
+	inject.ScanInject("JobScheduler", SchedulerImpl)
 }
 
 type Scheduler struct {

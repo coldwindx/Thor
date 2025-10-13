@@ -5,7 +5,7 @@ import (
 	"Thor/src/handler/job"
 	"Thor/src/manager"
 	"Thor/src/models"
-	"Thor/utils"
+	"Thor/utils/inject"
 	"errors"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/samber/lo"
@@ -17,7 +17,7 @@ import (
 func init() {
 	var impl = new(TaskService)
 	// bean注入
-	utils.ScanInject("TaskService", impl)
+	inject.ScanInject("TaskService", impl)
 }
 
 type TaskService struct {

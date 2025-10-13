@@ -3,14 +3,14 @@ package mapper
 import (
 	"Thor/ctx"
 	"Thor/src/models"
-	"Thor/utils"
+	"Thor/utils/inject"
 )
 
 var JobMapperImpl = new(JobMapper)
 
 func init() {
 	// 注入mapper
-	utils.ScanInject("JobMapper", JobMapperImpl)
+	inject.ScanInject("JobMapper", JobMapperImpl)
 	ctx.MybatisMapperBinds = append(ctx.MybatisMapperBinds, ctx.MybatisMapperBind{
 		XmlFile: "/mapper/JobMapper.xml",
 		Mapper:  JobMapperImpl,

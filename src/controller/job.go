@@ -8,7 +8,7 @@ import (
 	"Thor/src/request"
 	"Thor/src/services"
 	"Thor/tools"
-	"Thor/utils"
+	"Thor/utils/inject"
 
 	"github.com/gin-gonic/gin"
 	"github.com/ulule/deepcopier"
@@ -16,7 +16,7 @@ import (
 
 func init() {
 	var impl = new(JobController)
-	utils.ScanInject("JobController", impl)
+	inject.ScanInject("JobController", impl)
 	ctx.Routes = append(ctx.Routes, func(r *gin.Engine) {
 		ctx.Router.POST("/job/insert", impl.Insert)
 		ctx.Router.POST("/job/delete", impl.Delete)

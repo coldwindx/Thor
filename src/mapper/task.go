@@ -3,13 +3,13 @@ package mapper
 import (
 	"Thor/ctx"
 	"Thor/src/models"
-	"Thor/utils"
+	"Thor/utils/inject"
 )
 
 func init() {
 	var TaskMapperImpl = new(TaskMapper)
 	// 注入mapper
-	utils.ScanInject("TaskMapper", TaskMapperImpl)
+	inject.ScanInject("TaskMapper", TaskMapperImpl)
 	ctx.MybatisMapperBinds = append(ctx.MybatisMapperBinds, ctx.MybatisMapperBind{
 		XmlFile: "/mapper/TaskMapper.xml",
 		Mapper:  TaskMapperImpl,

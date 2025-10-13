@@ -4,7 +4,7 @@ import (
 	"Thor/ctx"
 	"Thor/src/mapper"
 	"Thor/src/models"
-	"Thor/utils"
+	"Thor/utils/inject"
 	"fmt"
 	"github.com/samber/lo"
 	"github.com/zhuxiujia/GoMybatis"
@@ -13,7 +13,7 @@ import (
 func init() {
 	var impl = new(TaskManagerImpl)
 	impl.TaskManager.Create = impl.Create
-	utils.ScanInject("TaskManagerImpl", impl)
+	inject.ScanInject("TaskManagerImpl", impl)
 	GoMybatis.AopProxyService(&impl.TaskManager, &ctx.MybatisEngine)
 }
 

@@ -3,6 +3,7 @@ package bootstrap
 import (
 	"Thor/config"
 	"Thor/ctx"
+
 	// 显式调用controller层的init函数，否则路由无法注入
 	_ "Thor/src/controller"
 	_ "Thor/src/services"

@@ -23,7 +23,9 @@ func (JobInsertReq) GetValidateMessage() tools.ValidatorMessages {
 }
 
 type JobQueryReq struct {
-	Name string `json:"name" form:"name" binding:"required"`
+	Name         string    `json:"name" form:"name" binding:"required"`
+	Status       int       `json:"status" form:"status"`
+	CreatedAfter time.Time `json:"created_after" form:"created_after"`
 }
 
 func (JobQueryReq) GetValidateMessage() tools.ValidatorMessages {

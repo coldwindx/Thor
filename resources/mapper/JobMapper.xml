@@ -56,6 +56,9 @@
         <where>
             deleted = 0
             <if test="name != nil and name != ''">and name = #{name}</if>
+            <if test="status != 0">and status = #{status}</if>
+            and created_at &gt; #{createdAfter}
         </where>
+        <if test="pageSize &gt; 0">limit ${pageSize}</if>
     </select>
 </mapper>

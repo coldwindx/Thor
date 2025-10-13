@@ -19,7 +19,7 @@ func init() {
 type JobService struct {
 	Insert func(job *models.Job) (int, error)
 	Delete func(query models.JobQuery) (int, error)
-	Query  func(query models.JobQuery) ([]models.Job, error)
+	Query  func(query *models.JobQuery) ([]models.Job, error)
 }
 
 type JobServiceImpl struct {
@@ -35,8 +35,9 @@ func (it *JobServiceImpl) Delete(query models.JobQuery) (int, error) {
 	return mapper.JobMapperImpl.Delete(query)
 }
 
-func (it *JobServiceImpl) Query(query models.JobQuery) ([]models.Job, error) {
-	return mapper.JobMapperImpl.Query(query)
+func (it *JobServiceImpl) Query(query *models.JobQuery) ([]models.Job, error) {
+	it.beforeQuery(query)
+	return mapper.JobMapperImpl.Query(*query)
 }
 
 func (it *JobServiceImpl) beforeInsert(job *models.Job) {
@@ -50,5 +51,11 @@ func (it *JobServiceImpl) beforeInsert(job *models.Job) {
 	}
 	if job.UpdatedAt.IsZero() {
 		job.UpdatedAt = t
+	}
+}
+
+func (it *JobServiceImpl) beforeQuery(query *models.JobQuery) {
+	if query.CreatedAfter.IsZero() {
+		query.CreatedAfter = time.Now()
 	}
 }

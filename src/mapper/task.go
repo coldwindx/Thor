@@ -18,4 +18,5 @@ func init() {
 
 type TaskMapper struct {
 	Insert func(task models.Task) (int, error)
+	Query  func(task models.TaskQuery) ([]models.Task, error)
 }

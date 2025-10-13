@@ -14,3 +14,8 @@ type Task struct {
 	UpdatedAt time.Time `json:"updated_at"`
 	Deleted   int       `json:"deleted"`
 }
+
+type TaskQuery struct {
+	Id       int64 `json:"id"`
+	PageSize int   `json:"page_size"`
+}

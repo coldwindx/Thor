@@ -5,6 +5,7 @@ import (
 	"Thor/src/mapper"
 	"Thor/src/models"
 	"Thor/utils"
+	"fmt"
 	"github.com/samber/lo"
 	"github.com/zhuxiujia/GoMybatis"
 )
@@ -17,22 +18,28 @@ func init() {
 }
 
 type TaskManager struct {
-	Create func(task *models.Task, jobs []*models.Job) `tx:"" rollback:"error"`
+	Create func(task *models.Task, jobs []*models.Job) error `tx:"" rollback:"error"`
 }
 
 type TaskManagerImpl struct {
 	TaskManager `bean:"TaskManager"`
 	TaskMapper  *mapper.TaskMapper `inject:"TaskMapper"`
-	JobMapper   *mapper.JobMapper  `inject:"JobMapper"`
+	JobMapper   *mapper.JobMapper  `inject:"JobService"`
 }
 
-func (it *TaskManagerImpl) Create(task *models.Task, jobs []*models.Job) {
+func (it *TaskManagerImpl) Create(task *models.Task, jobs []*models.Job) (err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("panic occurred: %v", r)
+		}
+	}()
 	lo.ForEach(jobs, func(job *models.Job, index int) {
-		if _, err := it.JobMapper.Insert(*job); err != nil {
+		if _, err = it.JobMapper.Insert(*job); err != nil {
 			panic("Job insert error, " + err.Error())
 		}
 	})
-	if _, err := it.TaskMapper.Insert(*task); err != nil {
+	if _, err = it.TaskMapper.Insert(*task); err != nil {
 		panic("Task insert error, " + err.Error())
 	}
+	return nil
 }

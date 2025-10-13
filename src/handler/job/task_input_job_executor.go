@@ -1,6 +1,7 @@
 package job
 
 import (
+	"Thor/src/mapper"
 	"Thor/src/models"
 )
 
@@ -10,6 +11,7 @@ func init() {
 
 type TaskInputJobExecutor struct {
 	IJobExecutor
+	JobMapper mapper.JobMapper `inject:"JobMapper"`
 }
 
 func (it *TaskInputJobExecutor) GetName() string {

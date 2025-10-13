@@ -1,6 +1,7 @@
 package job
 
 import (
+	"Thor/src/mapper"
 	"Thor/src/models"
 )
 
@@ -10,6 +11,7 @@ func init() {
 
 type IosJobExecutor struct {
 	IJobExecutor
+	JobMapper *mapper.JobMapper `inject:""`
 }
 
 func (it *IosJobExecutor) GetName() string {
@@ -24,6 +26,6 @@ func (it *IosJobExecutor) Start(job *models.Job) error {
 	return nil
 }
 
-func (it *IosJobExecutor) Callback() error {
-	return nil
+func (it *IosJobExecutor) Callback(body string) (any, error) {
+	return nil, nil
 }

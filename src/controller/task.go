@@ -35,8 +35,7 @@ func (it *TaskController) Create(c *gin.Context) {
 
 	var task models.Task
 	_ = deepcopier.Copy(&form).To(&task)
-	err := it.TaskService.Create(&task)
-	if nil != err {
+	if err := it.TaskService.Create(&task); nil != err {
 		common.Fail(c, common.Errors.BusinessError.Code, err.Error())
 		return
 	}

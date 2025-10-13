@@ -21,8 +21,8 @@ func init() {
 }
 
 type TaskService struct {
-	JobScheduler *job.Scheduler       `inject:""`
-	TaskManager  *manager.TaskManager `inject:""`
+	JobScheduler *job.Scheduler       `inject:"JobScheduler"`
+	TaskManager  *manager.TaskManager `inject:"TaskManager"`
 }
 
 func (it *TaskService) Create(task *models.Task) error {
@@ -34,7 +34,7 @@ func (it *TaskService) Create(task *models.Task) error {
 	}
 	pipe := lo.Filter(pipelines, func(item models.Pipeline, index int) bool { return item.Name == task.Pipeline })[0]
 	// Workflow to DAG
-	var jobs = make([]*models.Job, 0)
+	var jobMap = make(map[string]*models.Job)
 	var dag = make(map[string]*models.WorkNode)
 
 	for _, link := range strings.Split(pipe.Workflow, ",") {
@@ -48,10 +48,12 @@ func (it *TaskService) Create(task *models.Task) error {
 			j.Id = ctx.Snowflake.Generate().Int64()
 			j.TaskId = task.Id
 			j.Name = edge
+			j.Status = int(models.INITING)
 			j.AwakenAt = time.Now()
 			j.CreatedAt = time.Now()
 			j.UpdatedAt = time.Now()
-			jobs = append(jobs, j)
+
+			jobMap[j.Name] = j
 			dag[j.Name] = &models.WorkNode{JobId: j.Id, JobName: j.Name}
 
 			executor := it.JobScheduler.GetExecutor(j.Name)
@@ -61,15 +63,16 @@ func (it *TaskService) Create(task *models.Task) error {
 		}
 
 		dag[edges[0]].Next = append(dag[edges[0]].Next, dag[edges[1]].JobId)
+		jobMap[edges[1]].Locked += 1
+		jobMap[edges[1]].Status = int(models.WAITING)
 	}
 
 	workNodes := lo.MapToSlice(dag, func(_ string, value *models.WorkNode) *models.WorkNode { return value })
 	if task.Dag, err = jsoniter.MarshalToString(workNodes); err != nil {
 		return err
 	}
-
-	it.TaskManager.Create(task, jobs)
-	return nil
+	jobs := lo.MapToSlice(jobMap, func(_ string, value *models.Job) *models.Job { return value })
+	return it.TaskManager.Create(task, jobs)
 }
 
 func (it *TaskService) beforeInsert(task *models.Task) {

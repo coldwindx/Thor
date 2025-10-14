@@ -2,6 +2,7 @@ package test
 
 import (
     "fmt"
+    "github.com/stretchr/testify/assert"
     "reflect"
     "testing"
 )
@@ -22,4 +23,10 @@ func TestGetMethodFromStruct(t *testing.T) {
         method := objType.Method(i)
         fmt.Println("[method] >>>", method.Name, ", CanSet:", method.Func.CanSet())
     }
+}
+
+func TestImplement(t *testing.T) {
+    cat := &Cat{Name: "kitty"}
+    iType := reflect.TypeOf(new(IAnimal)).Elem()
+    assert.True(t, reflect.TypeOf(cat).Implements(iType))
 }

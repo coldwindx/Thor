@@ -1,15 +1,15 @@
 package test
 
 import (
-    "Thor/utils/injectv2"
+    "Thor/utils/inject"
     "github.com/stretchr/testify/assert"
     "testing"
 )
 
 func TestGetBeanByName(t *testing.T) {
-    beans := injectv2.NewGraph()
-    beans.Provide(&injectv2.Object{Name: "cat", Value: &Cat{}})
-    beans.Provide(&injectv2.Object{Name: "dog", Value: &Dog{}})
+    beans := inject.NewGraph()
+    beans.Provide(&inject.Object{Name: "cat", Value: &Cat{}})
+    beans.Provide(&inject.Object{Name: "dog", Value: &Dog{}})
     _ = beans.Populate()
 
     assert.Equal(t, "cat:", beans.GetByName("cat").(*Cat).GetName())
@@ -21,9 +21,9 @@ func TestInjectByNamed(t *testing.T) {
         Cat *Cat `inject:"cat"`
     }
 
-    beans := injectv2.NewGraph()
-    beans.Provide(&injectv2.Object{Name: "cat", Value: &Cat{Name: "kitty"}})
-    beans.Provide(&injectv2.Object{Name: "zoo", Value: &Zoo{}})
+    beans := inject.NewGraph()
+    beans.Provide(&inject.Object{Name: "cat", Value: &Cat{Name: "kitty"}})
+    beans.Provide(&inject.Object{Name: "zoo", Value: &Zoo{}})
     _ = beans.Populate()
 
     zoo := beans.GetByName("zoo").(*Zoo)
@@ -35,9 +35,9 @@ func TestInjectByTyped(t *testing.T) {
         Cat *Cat `inject:""`
     }
 
-    beans := injectv2.NewGraph()
-    beans.Provide(&injectv2.Object{Name: "cat", Value: &Cat{Name: "kitty"}})
-    beans.Provide(&injectv2.Object{Name: "zoo", Value: &Zoo{}})
+    beans := inject.NewGraph()
+    beans.Provide(&inject.Object{Name: "cat", Value: &Cat{Name: "kitty"}})
+    beans.Provide(&inject.Object{Name: "zoo", Value: &Zoo{}})
     _ = beans.Populate()
 
     zoo := beans.GetByName("zoo").(*Zoo)
@@ -49,9 +49,9 @@ func TestInjectByUnnamedInterface(t *testing.T) {
         Animal IAnimal `inject:""`
     }
 
-    beans := injectv2.NewGraph()
-    beans.Provide(&injectv2.Object{Name: "cat", Value: &Cat{Name: "kitty"}})
-    beans.Provide(&injectv2.Object{Name: "zoo", Value: &Zoo{}})
+    beans := inject.NewGraph()
+    beans.Provide(&inject.Object{Name: "cat", Value: &Cat{Name: "kitty"}})
+    beans.Provide(&inject.Object{Name: "zoo", Value: &Zoo{}})
     _ = beans.Populate()
 
     zoo := beans.GetByName("zoo").(*Zoo)
@@ -63,9 +63,9 @@ func TestInjectByNamedInterface(t *testing.T) {
         Animal IAnimal `inject:"cat"`
     }
 
-    beans := injectv2.NewGraph()
-    beans.Provide(&injectv2.Object{Name: "cat", Value: &Cat{Name: "kitty"}})
-    beans.Provide(&injectv2.Object{Name: "zoo", Value: &Zoo{}})
+    beans := inject.NewGraph()
+    beans.Provide(&inject.Object{Name: "cat", Value: &Cat{Name: "kitty"}})
+    beans.Provide(&inject.Object{Name: "zoo", Value: &Zoo{}})
     _ = beans.Populate()
 
     zoo := beans.GetByName("zoo").(*Zoo)
@@ -77,10 +77,10 @@ func TestInjectByList(t *testing.T) {
         Animals []IAnimal `inject:""`
     }
 
-    beans := injectv2.NewGraph()
-    beans.Provide(&injectv2.Object{Name: "cat", Value: &Cat{Name: "kitty"}})
-    beans.Provide(&injectv2.Object{Name: "dog", Value: &Dog{Name: "fido"}})
-    beans.Provide(&injectv2.Object{Name: "zoo", Value: &Zoo{}})
+    beans := inject.NewGraph()
+    beans.Provide(&inject.Object{Name: "cat", Value: &Cat{Name: "kitty"}})
+    beans.Provide(&inject.Object{Name: "dog", Value: &Dog{Name: "fido"}})
+    beans.Provide(&inject.Object{Name: "zoo", Value: &Zoo{}})
     _ = beans.Populate()
 
     zoo := beans.GetByName("zoo").(*Zoo)
@@ -93,10 +93,10 @@ func TestInjectByMap(t *testing.T) {
         Animals map[string]IAnimal `inject:""`
     }
 
-    beans := injectv2.NewGraph()
-    beans.Provide(&injectv2.Object{Name: "cat", Value: &Cat{Name: "kitty"}})
-    beans.Provide(&injectv2.Object{Name: "dog", Value: &Dog{Name: "fido"}})
-    beans.Provide(&injectv2.Object{Name: "zoo", Value: &Zoo{}})
+    beans := inject.NewGraph()
+    beans.Provide(&inject.Object{Name: "cat", Value: &Cat{Name: "kitty"}})
+    beans.Provide(&inject.Object{Name: "dog", Value: &Dog{Name: "fido"}})
+    beans.Provide(&inject.Object{Name: "zoo", Value: &Zoo{}})
     _ = beans.Populate()
 
     zoo := beans.GetByName("zoo").(*Zoo)
@@ -113,11 +113,11 @@ func TestCycleInject(t *testing.T) {
         Zoo *Zoo `inject:""`
     }
 
-    beans := injectv2.NewGraph()
-    beans.Provide(&injectv2.Object{Name: "city", Value: &City{}})
-    beans.Provide(&injectv2.Object{Name: "cat", Value: &Cat{Name: "kitty"}})
-    beans.Provide(&injectv2.Object{Name: "dog", Value: &Dog{Name: "fido"}})
-    beans.Provide(&injectv2.Object{Name: "zoo", Value: &Zoo{}})
+    beans := inject.NewGraph()
+    beans.Provide(&inject.Object{Name: "city", Value: &City{}})
+    beans.Provide(&inject.Object{Name: "cat", Value: &Cat{Name: "kitty"}})
+    beans.Provide(&inject.Object{Name: "dog", Value: &Dog{Name: "fido"}})
+    beans.Provide(&inject.Object{Name: "zoo", Value: &Zoo{}})
     _ = beans.Populate()
 
     city := beans.GetByName("city").(*City)

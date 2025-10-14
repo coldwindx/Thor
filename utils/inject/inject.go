@@ -1,417 +1,282 @@
-package inject
+package injectv2
 
-/**
- * 根据facebook的inject库，重新实现的依赖注入工具
- */
 import (
-	"bytes"
-	"fmt"
-	"math/rand"
-	"reflect"
+    "fmt"
+    "github.com/samber/lo"
+    "reflect"
 )
 
-// Logger allows for simple logging as inject traverses and populates the
-// object graph.
-type Logger interface {
-	Debugf(format string, v ...interface{})
-}
-
-// Populate is a short-hand for populating a graph with the given incomplete
-// object values.
-func Populate(values ...interface{}) error {
-	var g Graph
-	for _, v := range values {
-		if err := g.Provide(&Object{Value: v}); err != nil {
-			return err
-		}
-	}
-	return g.Populate()
-}
-
-// An Object in the Graph.
+// Object 表示一个受管理的bean对象
 type Object struct {
-	Value        interface{}
-	Name         string             // Optional
-	Complete     bool               // If true, the Value will be considered complete
-	Fields       map[string]*Object // Populated with the field names that were injected and their corresponding *Object.
-	reflectType  reflect.Type
-	reflectValue reflect.Value
-	private      bool // If true, the Value will not be used and will only be populated
-	created      bool // If true, the Object was created by us
-	embedded     bool // If true, the Object is an embedded struct provided internally
+    Name      string        // Bean名称
+    Value     any           // Bean实例，必须是指针类型
+    RfType    reflect.Type  // Bean实例的反射类型
+    RfValue   reflect.Value // Bean实例的反射值
+    Completed bool          // 完整的Bean实例，无需依赖注入
 }
 
-// String representation suitable for human consumption.
-func (o *Object) String() string {
-	var buf bytes.Buffer
-	fmt.Fprint(&buf, o.reflectType)
-	if o.Name != "" {
-		fmt.Fprintf(&buf, " named %s", o.Name)
-	}
-	return buf.String()
-}
-
-func (o *Object) addDep(field string, dep *Object) {
-	if o.Fields == nil {
-		o.Fields = make(map[string]*Object)
-	}
-	o.Fields[field] = dep
-}
-
-// The Graph of Objects.
+// Graph 表示一组bean对象的管理容器
 type Graph struct {
-	Logger Logger // Optional, will trigger debug logging.
-	named  map[string]*Object
+    objects map[string]*Object // 所有受管理的bean对象，key为bean名称
 }
 
-// Provide objects to the Graph. The Object documentation describes
-// the impact of various fields.
-func (g *Graph) Provide(objects ...*Object) error {
-	for _, o := range objects {
-		o.reflectType = reflect.TypeOf(o.Value)
-		o.reflectValue = reflect.ValueOf(o.Value)
-
-		if o.Fields != nil {
-			return fmt.Errorf(
-				"fields were specified on object %s when it was provided",
-				o,
-			)
-		}
-
-		if o.Name == "" {
-			if !isStructPtr(o.reflectType) {
-				return fmt.Errorf(
-					"expected unnamed object value to be a pointer to a struct but got type %s "+
-						"with value %v",
-					o.reflectType,
-					o.Value,
-				)
-			}
-			// 当没有指定Name时，默认Name为结构体类型名
-			o.Name = o.reflectType.Elem().String()
-			//fmt.Println("default name:", o.reflectType.Elem().String())
-		}
-
-		if g.named == nil {
-			g.named = make(map[string]*Object)
-		}
-
-		if g.named[o.Name] != nil {
-			return fmt.Errorf("provided two instances named %s", o.Name)
-		}
-		g.named[o.Name] = o
-
-		if g.Logger != nil {
-			if o.created {
-				g.Logger.Debugf("created %s", o)
-			} else if o.embedded {
-				g.Logger.Debugf("provided embedded %s", o)
-			} else {
-				g.Logger.Debugf("provided %s", o)
-			}
-		}
-	}
-	return nil
+// NewGraph 创建一个新的Graph实例
+func NewGraph() *Graph {
+    return &Graph{objects: make(map[string]*Object)}
 }
 
-// Populate the incomplete Objects.
+// Provide 向容器中添加一个或多个bean对象
+func (g *Graph) Provide(objs ...*Object) {
+    for _, obj := range objs {
+        obj.RfType = reflect.TypeOf(obj.Value)
+        obj.RfValue = reflect.ValueOf(obj.Value)
+        // 检查Bean实例是否是指针类型
+        if obj.RfType.Kind() != reflect.Ptr {
+            panic("Bean实例必须是指针类型")
+        }
+        // 检查Bean的名称是否为空，如果为空，则根据bean的类型构造名称
+        obj.Name = lo.Ternary(len(obj.Name) == 0, obj.RfType.Elem().Name(), obj.Name)
+        // 检查是否有相同名称的bean对象
+        if _, ok := g.objects[obj.Name]; ok {
+            panic("provided two instances named `" + obj.Name + "`")
+        }
+        // 根据Bean的名称，加入容器管理
+        g.objects[obj.Name] = obj
+    }
+}
+
 func (g *Graph) Populate() error {
-	// step1. 注入所有struct类型的Object
-	for _, o := range g.named {
-		if o.Complete {
-			continue
-		}
-
-		// 注入指针类型的Object
-		if err := g.populateExplicit(o); err != nil {
-			return err
-		}
-	}
-
-	// step2. 注入所有接口类型的Object
-	for _, o := range g.named {
-		if o.Complete {
-			continue
-		}
-
-		if err := g.populateInterface(o); err != nil {
-			return err
-		}
-	}
-
-	// step3. 注入所有map类型的Object
-	for _, o := range g.named {
-		if o.Complete {
-			continue
-		}
-
-		if err := g.populateMap(o); err != nil {
-			return err
-		}
-	}
-	return nil
+    // 遍历所有bean对象，进行依赖注入
+    for _, obj := range g.objects {
+        // 检查Bean是否已经完成依赖注入，节省注入成本
+        if obj.Completed {
+            continue
+        }
+        // 拿到Bean实例的所有属性值，准备注入
+        for i := 0; i < obj.RfType.Elem().NumField(); i++ {
+            fieldValue := obj.RfValue.Elem().Field(i)
+            // 跳过不能设置的属性
+            if !fieldValue.CanSet() {
+                continue
+            }
+            // 分别获取属性的 类型 和 标签
+            field := obj.RfType.Elem().Field(i)
+            tag, ok := field.Tag.Lookup("inject")
+            // 跳过没有inject标签的属性
+            if !ok {
+                continue
+            }
+            // 根据属性的 类型 和 标签，进行依赖注入
+            factory.Inject(g, fieldValue, field.Type, tag)
+        }
+    }
+    return nil
 }
 
-func (g *Graph) populateExplicit(o *Object) error {
-	for i := 0; i < o.reflectValue.Elem().NumField(); i++ {
-		field := o.reflectValue.Elem().Field(i)
-		fieldType := field.Type()
-		fieldTag := o.reflectType.Elem().Field(i).Tag
-		fieldName := o.reflectType.Elem().Field(i).Name
-		// Skip fields without a ttag.
-		ttag := parseTagV2(fieldTag)
-		if ttag == nil {
-			continue
-		}
-
-		// Cannot be used with unexported fields.
-		if !field.CanSet() {
-			return fmt.Errorf(
-				"inject requested on unexported field `%s` in type `%s`",
-				o.reflectType.Elem().Field(i).Name,
-				o.reflectType,
-			)
-		}
-
-		// 第一轮注入，只注入struct类型的字段
-		if fieldType.Kind() != reflect.Struct && fieldType.Kind() != reflect.Ptr {
-			continue
-		}
-
-		// Inline ttag on anything besides a struct is considered invalid.
-		if ttag.Inline && fieldType.Kind() != reflect.Struct {
-			return fmt.Errorf(
-				"inline requested on non inlined field %s in type %s",
-				o.reflectType.Elem().Field(i).Name,
-				o.reflectType,
-			)
-		}
-
-		// Don't overwrite existing values.
-		if !isNilOrZero(field, fieldType) {
-			continue
-		}
-
-		// 没有指定Name时，默认Name为字段类型名
-		if ttag.Name == "" {
-			ttag.Name = fieldType.Elem().String()
-			//fmt.Printf("default inject name: %s, field name: %s\n", ttag.Name, fieldName)
-		}
-
-		existing := g.named[ttag.Name]
-		if existing == nil {
-			return fmt.Errorf(
-				"did not find object named %s required by field %s in type %s",
-				ttag.Name, fieldName, o.reflectType,
-			)
-		}
-
-		if !existing.reflectType.AssignableTo(fieldType) {
-			return fmt.Errorf(
-				"object ttag named `%s` of type `%s` is not assignable to field `%s` in type `%s`",
-				ttag.Name,
-				fieldType,
-				fieldName,
-				o.reflectType,
-			)
-		}
-
-		field.Set(reflect.ValueOf(existing.Value))
-		if g.Logger != nil {
-			g.Logger.Debugf("assigned %s to field %s in %s", existing, o.reflectType.Elem().Field(i).Name, o)
-		}
-		o.addDep(fieldName, existing)
-	}
-	return nil
+func (g *Graph) GetByName(name string) any {
+    return g.objects[name].Value
 }
 
-func (g *Graph) populateInterface(o *Object) error {
-loop:
-	for i := 0; i < o.reflectValue.Elem().NumField(); i++ {
-		field := o.reflectValue.Elem().Field(i)
-		fieldType := field.Type()
-		fieldTag := o.reflectType.Elem().Field(i).Tag
-		fieldName := o.reflectType.Elem().Field(i).Name
-
-		tag := parseTagV2(fieldTag)
-		if tag == nil {
-			continue
-		}
-		// We only handle interface injection here. Other cases including errors
-		// are handled in the first pass when we inject pointers.
-		if fieldType.Kind() != reflect.Interface {
-			continue
-		}
-
-		// Interface injection can't be private because we can't instantiate new
-		// instances of an interface.
-		if tag.Private {
-			return fmt.Errorf(
-				"found private inject tag on interface field %s in type %s",
-				o.reflectType.Elem().Field(i).Name,
-				o.reflectType,
-			)
-		}
-
-		// Don't overwrite existing values.
-		if !isNilOrZero(field, fieldType) {
-			continue
-		}
-
-		// Find one, and only one assignable value for the field.
-		for _, existing := range g.named {
-			if existing.private || (0 < len(tag.Name) && existing.Name != tag.Name) {
-				continue
-			}
-			if !existing.reflectType.AssignableTo(fieldType) {
-				continue
-			}
-			field.Set(reflect.ValueOf(existing.Value))
-			if g.Logger != nil {
-				g.Logger.Debugf(
-					"assigned existing %s to interface field %s in %s",
-					existing,
-					o.reflectType.Elem().Field(i).Name,
-					o,
-				)
-			}
-			o.addDep(fieldName, existing)
-			break loop
-		}
-
-		// If we didn't find an assignable value, we're missing something.
-		return fmt.Errorf(
-			"found no assignable value for field %s in type %s",
-			o.reflectType.Elem().Field(i).Name,
-			o.reflectType,
-		)
-	}
-	return nil
+/**
+ * 依赖注入器
+ * 负责根据bean对象的属性标签，进行依赖注入
+ */
+var factory = &InjectFactory{
+    injector: []Injector{
+        &NamedStructInjector{},
+        &UnnamedStructInjector{},
+        &NamedInterfaceInjector{},
+        &UnnamedInterfaceInjector{},
+        &ListInjector{},
+        &MapInjector{},
+    },
 }
 
-func (g *Graph) populateMap(o *Object) error {
-	for i := 0; i < o.reflectValue.Elem().NumField(); i++ {
-		field := o.reflectValue.Elem().Field(i)
-		fieldType := field.Type()
-		fieldTag := o.reflectType.Elem().Field(i).Tag
-		fieldName := o.reflectType.Elem().Field(i).Name
-
-		tag := parseTagV2(fieldTag)
-		if tag == nil {
-			continue
-		}
-
-		// Interface injection can't be private because we can't instantiate new
-		// instances of an interface.
-		if tag.Private {
-			return fmt.Errorf(
-				"found private inject tag on interface field %s in type %s",
-				o.reflectType.Elem().Field(i).Name,
-				o.reflectType,
-			)
-		}
-
-		// Don't overwrite existing values.
-		if !isNilOrZero(field, fieldType) {
-			continue
-		}
-
-		// 第三轮注入，只注入Map/List类型的字段
-		if fieldType.Kind() == reflect.Map {
-			mp := reflect.MakeMap(fieldType)
-			for _, existing := range g.named {
-				if existing.private || !existing.reflectType.AssignableTo(fieldType.Elem()) {
-					continue
-				}
-				mp.SetMapIndex(reflect.ValueOf(existing.Name), reflect.ValueOf(existing.Value))
-			}
-			field.Set(mp)
-			o.addDep(fieldName, &Object{Value: mp, Complete: true, created: true})
-		}
-
-		if fieldType.Kind() == reflect.Slice {
-			founds := reflect.MakeSlice(fieldType, 0, 0)
-			for _, existing := range g.named {
-				if existing.private || !existing.reflectType.AssignableTo(fieldType.Elem()) {
-					continue
-				}
-				founds = reflect.Append(founds, reflect.ValueOf(existing.Value))
-			}
-
-			field.Set(founds)
-			o.addDep(fieldName, &Object{Value: founds, Complete: true, created: true})
-		}
-	}
-	return nil
+type InjectFactory struct {
+    injector []Injector
 }
 
-// Objects returns all known objects, named as well as unnamed. The returned
-// elements are not in a stable order.
-func (g *Graph) Objects() []*Object {
-	objects := make([]*Object, 0, len(g.named))
-	for _, o := range g.named {
-		if !o.embedded {
-			objects = append(objects, o)
-		}
-	}
-	// randomize to prevent callers from relying on ordering
-	for i := 0; i < len(objects); i++ {
-		j := rand.Intn(i + 1)
-		objects[i], objects[j] = objects[j], objects[i]
-	}
-	return objects
+func (f *InjectFactory) Inject(g *Graph, fieldVal reflect.Value, fieldType reflect.Type, fieldTag string) {
+    for _, inject := range f.injector {
+        if inject.Validate(fieldType, fieldTag) {
+            inject.Inject(g, fieldVal, fieldType, fieldTag)
+            return
+        }
+    }
+    panic(fmt.Sprintf("did not find suitable injector for field [%s]", fieldType.Name()))
 }
 
-func (g *Graph) Get(name string) any {
-	if obj, ok := g.named[name]; ok {
-		return obj.Value
-	}
-	panic("bean not found: " + name)
+type Injector interface {
+    Validate(fieldType reflect.Type, fieldTag string) bool
+    Inject(g *Graph, fieldVal reflect.Value, fieldType reflect.Type, fieldTag string)
 }
 
-func (g *Graph) Query(t reflect.Type) []*Object {
-	results := make([]*Object, 0)
-	for _, existing := range g.named {
-		if existing.private || !existing.reflectType.AssignableTo(t) {
-			continue
-		}
-		results = append(results, existing)
-	}
-	return results
+type NamedStructInjector struct{}
+type UnnamedStructInjector struct{}
+type NamedInterfaceInjector struct{}
+type UnnamedInterfaceInjector struct{}
+type ListInjector struct{}
+type MapInjector struct{}
+
+func (n *NamedInterfaceInjector) Validate(fieldType reflect.Type, fieldTag string) bool {
+    // 注入属性必须是接口类型
+    if fieldType.Kind() != reflect.Interface {
+        return false
+    }
+    // 注入属性标签不能为空
+    if len(fieldTag) == 0 {
+        return false
+    }
+    // 可执行依赖注入
+    return true
 }
 
-type tag struct {
-	Name    string
-	Inline  bool
-	Private bool
+func (n *NamedInterfaceInjector) Inject(g *Graph, fieldVal reflect.Value, fieldType reflect.Type, fieldTag string) {
+    // 从容器中根据属性标签获取管理的bean对象
+    obj, ok := g.objects[fieldTag]
+    // 检查容器中是否存在目标bean对象
+    if !ok {
+        panic(fmt.Sprintf("bean `%s` not found", fieldTag))
+    }
+    // 检查依赖的bean对象是否实现了目标接口
+    if !obj.RfType.Implements(fieldType) {
+        panic(fmt.Sprintf("bean `%s` does not implement interface `%s`", obj.Name, fieldType.Name()))
+    }
+    // 进行依赖注入
+    fieldVal.Set(reflect.ValueOf(obj.Value))
+}
+func (i *UnnamedInterfaceInjector) Validate(fieldType reflect.Type, fieldTag string) bool {
+    // 属性标签必须为空
+    if len(fieldTag) != 0 {
+        return false
+    }
+    // 注入属性必须是接口类型
+    if fieldType.Kind() != reflect.Interface {
+        return false
+    }
+    // 可执行依赖注入
+    return true
 }
 
-func parseTagV2(t reflect.StructTag) *tag {
-	value, ok := t.Lookup("inject")
-	if !ok {
-		return nil
-	}
-	if value == "" {
-		return &tag{}
-	}
-	if value == "inline" {
-		return &tag{Inline: true}
-	}
-	if value == "private" {
-		return &tag{Private: true}
-	}
-	return &tag{Name: value}
+func (i *UnnamedInterfaceInjector) Inject(g *Graph, fieldVal reflect.Value, fieldType reflect.Type, fieldTag string) {
+    // 从容器中循环获取管理的bean对象
+    for _, obj := range g.objects {
+        // 检查依赖的bean对象必须实现目标接口
+        if obj.RfType.Implements(fieldType) {
+            // 进行依赖注入
+            fieldVal.Set(reflect.ValueOf(obj.Value))
+        }
+    }
 }
 
-func isStructPtr(t reflect.Type) bool {
-	return t.Kind() == reflect.Ptr && t.Elem().Kind() == reflect.Struct
+func (m *MapInjector) Validate(fieldType reflect.Type, fieldTag string) bool {
+    // 注入属性必须是map类型
+    if fieldType.Kind() != reflect.Map {
+        return false
+    }
+    // 注入类型是map时，属性标签必须为空
+    if len(fieldTag) != 0 {
+        panic("map type inject must have no tag.")
+    }
+
+    // 可执行依赖注入
+    return true
 }
 
-func isNilOrZero(v reflect.Value, t reflect.Type) bool {
-	switch v.Kind() {
-	default:
-		return reflect.DeepEqual(v.Interface(), reflect.Zero(t).Interface())
-	case reflect.Interface, reflect.Ptr:
-		return v.IsNil()
-	}
+func (m *MapInjector) Inject(g *Graph, fieldVal reflect.Value, fieldType reflect.Type, _ string) {
+    mValues := reflect.MakeMap(fieldType)
+    // 从容器中循环获取管理的bean对象
+    for _, obj := range g.objects {
+        // 检查依赖的bean对象是否是目标属性的类型或子类型
+        if obj.RfType.AssignableTo(fieldType.Elem()) {
+            // 进行依赖注入
+            mValues.SetMapIndex(reflect.ValueOf(obj.Name), reflect.ValueOf(obj.Value))
+        }
+    }
+    // 设置属性值
+    fieldVal.Set(mValues)
+}
+
+func (l *ListInjector) Validate(fieldType reflect.Type, fieldTag string) bool {
+    // 注入属性必须是切片类型
+    if fieldType.Kind() != reflect.Slice {
+        return false
+    }
+    // 属性标签必须为空
+    if len(fieldTag) != 0 {
+        panic("slice type inject must have no tag.")
+    }
+
+    // 可执行依赖注入
+    return true
+}
+
+func (l *ListInjector) Inject(g *Graph, fieldVal reflect.Value, fieldType reflect.Type, _ string) {
+    lValues := reflect.MakeSlice(fieldType, 0, 0)
+    // 从容器中循环获取管理的bean对象
+    for _, obj := range g.objects {
+        // 检查依赖的bean对象是否是目标属性的类型或子类型
+        if obj.RfType.AssignableTo(fieldType.Elem()) {
+            // 进行依赖注入
+            lValues = reflect.Append(lValues, reflect.ValueOf(obj.Value))
+        }
+    }
+    // 设置属性值
+    fieldVal.Set(lValues)
+}
+
+func (t *UnnamedStructInjector) Validate(fieldType reflect.Type, fieldTag string) bool {
+    // 属性标签必须为空
+    if len(fieldTag) != 0 {
+        return false
+    }
+    // 注入属性必须是指针类型
+    if fieldType.Kind() != reflect.Ptr {
+        return false
+    }
+    // 可执行依赖注入
+    return true
+}
+
+func (t *UnnamedStructInjector) Inject(g *Graph, fieldVal reflect.Value, fieldType reflect.Type, _ string) {
+    // 从容器中循环获取管理的bean对象
+    for _, obj := range g.objects {
+        // 检查依赖的bean对象是否是目标属性的类型或子类型
+        if obj.RfType.Elem().AssignableTo(fieldType.Elem()) {
+            // 进行依赖注入
+            fieldVal.Set(reflect.ValueOf(obj.Value))
+            return
+        }
+    }
+    // 未找到合适的bean对象，抛出异常
+    panic(fmt.Sprintf("did not find object of type [%s] required by type [%s]", fieldType.Name(), fieldType.Name()))
+}
+
+func (n *NamedStructInjector) Inject(g *Graph, fieldVal reflect.Value, fieldType reflect.Type, fieldTag string) {
+    // 从容器中获取依赖的bean对象
+    existing, ok := g.objects[fieldTag]
+    if !ok {
+        panic(fmt.Sprintf("did not find object named [%s] required by field [%s] in type [%s]", fieldTag, fieldVal.Type().Name(), fieldType.Name()))
+    }
+
+    // 检查依赖的bean对象是否是目标属性的类型或子类型
+    if !existing.RfType.Elem().AssignableTo(fieldType.Elem()) {
+        panic(fmt.Sprintf("object named [%s] of type [%s] is not assignable to field [%s] in type [%s]", existing.Name, existing.RfType.Name(), fieldVal.Type().Name(), fieldType.Name()))
+    }
+
+    // 进行依赖注入
+    fieldVal.Set(reflect.ValueOf(existing.Value))
+}
+
+func (n *NamedStructInjector) Validate(fieldType reflect.Type, fieldTag string) bool {
+    // 属性标签不能为空
+    if len(fieldTag) == 0 {
+        return false
+    }
+    // 注入属性必须是指针类型
+    if fieldType.Kind() != reflect.Ptr {
+        return false
+    }
+    // 可执行依赖注入
+    return true
 }

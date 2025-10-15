@@ -3,10 +3,7 @@ package bootstrap
 import (
 	"Thor/config"
 	"Thor/ctx"
-
-	// 显式调用controller层的init函数，否则路由无法注入
-	_ "Thor/src/controller"
-	_ "Thor/src/services"
+	"Thor/utils/inject"
 	"context"
 	"errors"
 	"fmt"
@@ -20,18 +17,32 @@ import (
 	"time"
 )
 
-var Manager = make(map[string]Interface)
+var Manager = make(map[string]Initializer)
 
-type Interface interface {
+func init() {
+	ctx.Beans.Provide(&inject.Object{Name: "bootstrap.Factory", Value: &Factory{}, Private: true})
+}
+
+type Initializer interface {
 	GetName() string
 	GetOrder() int
 	Initialize()
 	Close()
 }
 
+type Factory struct {
+	Initializers map[string]Initializer `inject:""`
+}
+
 func Initialize() {
-	instances := make([]Interface, 0, len(Manager))
-	for _, instance := range Manager {
+	// step 初始化Bean
+	if err := ctx.Beans.Populate(); err != nil {
+		panic("初始化Bean失败: " + err.Error())
+	}
+	factory := ctx.Beans.GetByName("bootstrap.Factory").(*Factory)
+	// step 初始化组件
+	var instances []Initializer
+	for _, instance := range factory.Initializers {
 		instances = append(instances, instance)
 	}
 	sort.Slice(instances, func(l, r int) bool {
@@ -44,7 +55,9 @@ func Initialize() {
 }
 
 func Close() {
-	for _, instance := range Manager {
+	factory := ctx.Beans.GetByName("bootstrap.Factory").(*Factory)
+	// step 初始化组件
+	for _, instance := range factory.Initializers {
 		instance.Close()
 	}
 }

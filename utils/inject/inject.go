@@ -13,7 +13,7 @@ type Object struct {
 	RfType    reflect.Type  // Bean实例的反射类型
 	RfValue   reflect.Value // Bean实例的反射值
 	Completed bool          // 完整的Bean实例，无需依赖注入
-	private   bool          // 是否是私有Bean，默认false
+	Private   bool          // 是否是私有Bean，默认false
 }
 
 // Graph 表示一组bean对象的管理容器
@@ -140,8 +140,8 @@ func (n *NamedInterfaceInjector) Inject(g *Graph, fieldVal reflect.Value, fieldT
 		panic(fmt.Sprintf("bean `%s` not found", fieldTag))
 	}
 	// 检查bean对象是否是公开的
-	if obj.private {
-		panic(fmt.Sprintf("bean [%s] is private, can not be injected", obj.Name))
+	if obj.Private {
+		panic(fmt.Sprintf("bean [%s] is Private, can not be injected", obj.Name))
 	}
 	// 检查依赖的bean对象是否实现了目标接口
 	if !obj.RfType.Implements(fieldType) {
@@ -167,7 +167,7 @@ func (i *UnnamedInterfaceInjector) Inject(g *Graph, fieldVal reflect.Value, fiel
 	// 从容器中循环获取管理的bean对象
 	for _, obj := range g.objects {
 		// 检查依赖的bean对象必须实现目标接口
-		if !obj.private && obj.RfType.Implements(fieldType) {
+		if !obj.Private && obj.RfType.Implements(fieldType) {
 			// 进行依赖注入
 			fieldVal.Set(reflect.ValueOf(obj.Value))
 			return
@@ -197,7 +197,7 @@ func (m *MapInjector) Inject(g *Graph, fieldVal reflect.Value, fieldType reflect
 	for _, obj := range g.objects {
 
 		// 检查依赖的bean对象是否是目标属性的类型或子类型
-		if !obj.private && obj.RfType.AssignableTo(fieldType.Elem()) {
+		if !obj.Private && obj.RfType.AssignableTo(fieldType.Elem()) {
 			// 进行依赖注入
 			mValues.SetMapIndex(reflect.ValueOf(obj.Name), reflect.ValueOf(obj.Value))
 		}
@@ -225,7 +225,7 @@ func (l *ListInjector) Inject(g *Graph, fieldVal reflect.Value, fieldType reflec
 	// 从容器中循环获取管理的bean对象
 	for _, obj := range g.objects {
 		// 检查依赖的bean对象是否是目标属性的类型或子类型
-		if !obj.private && obj.RfType.AssignableTo(fieldType.Elem()) {
+		if !obj.Private && obj.RfType.AssignableTo(fieldType.Elem()) {
 			// 进行依赖注入
 			lValues = reflect.Append(lValues, reflect.ValueOf(obj.Value))
 		}
@@ -251,7 +251,7 @@ func (t *UnnamedStructInjector) Inject(g *Graph, fieldVal reflect.Value, fieldTy
 	// 从容器中循环获取管理的bean对象
 	for _, obj := range g.objects {
 		// 检查依赖的bean对象是否是目标属性的类型或子类型
-		if !obj.private && obj.RfType.Elem().AssignableTo(fieldType.Elem()) {
+		if !obj.Private && obj.RfType.Elem().AssignableTo(fieldType.Elem()) {
 			// 进行依赖注入
 			fieldVal.Set(reflect.ValueOf(obj.Value))
 			return
@@ -268,8 +268,8 @@ func (n *NamedStructInjector) Inject(g *Graph, fieldVal reflect.Value, fieldType
 		panic(fmt.Sprintf("did not find object named [%s] required by field [%s] in type [%s]", fieldTag, fieldVal.Type().Name(), fieldType.Name()))
 	}
 	// 检查依赖的bean对象是否是公开的
-	if existing.private {
-		panic(fmt.Sprintf("object named [%s] is private, can not be injected", existing.Name))
+	if existing.Private {
+		panic(fmt.Sprintf("object named [%s] is Private, can not be injected", existing.Name))
 	}
 	// 检查依赖的bean对象是否是目标属性的类型或子类型
 	if !existing.RfType.Elem().AssignableTo(fieldType.Elem()) {

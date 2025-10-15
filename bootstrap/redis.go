@@ -11,7 +11,7 @@ import (
 
 //func init() {
 //	v := &RedisInitializer{name: "redis", order: 3}
-//	Manager[v.name] = v
+//	Initializers[v.name] = v
 //}
 
 type RedisInitializer struct {

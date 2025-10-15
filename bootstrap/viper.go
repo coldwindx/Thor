@@ -2,6 +2,8 @@ package bootstrap
 
 import (
 	config2 "Thor/config"
+	"Thor/ctx"
+	"Thor/utils/inject"
 	"fmt"
 	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/viper"
@@ -9,8 +11,8 @@ import (
 )
 
 func init() {
-	v := &ViperInitializer{name: "viper", order: 1}
-	Manager[v.name] = v
+	initializer := &ViperInitializer{name: "ViperInitializer", order: 1}
+	ctx.Beans.Provide(&inject.Object{Name: initializer.GetName(), Value: initializer, Completed: true})
 }
 
 type ViperInitializer struct {
@@ -28,8 +30,7 @@ func (*ViperInitializer) Initialize() {
 	// step1 设置配置文件路径
 	config := os.Getenv("VIPER_CONFIG")
 	if config == "" {
-		//panic(fmt.Errorf("load config from VIPER_CONFIG failed"))
-		config = "resources/application.yaml"
+		panic(fmt.Errorf("load config from VIPER_CONFIG failed"))
 	}
 	// step2 初始化viper
 	v := viper.New()

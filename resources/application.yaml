@@ -16,9 +16,9 @@ log:
 
 database:
   driver: mysql
-  host: 172.16.1.223
+  host: 10.37.2.220
   port: 3306
-  database: db_osiris
+  database: db_drill
   username: root
   password: mysql123
   charset: utf8mb4

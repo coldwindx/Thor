@@ -3,6 +3,7 @@ package bootstrap
 import (
 	"Thor/config"
 	"Thor/ctx"
+	"Thor/utils/inject"
 	"go.uber.org/zap"
 	"gopkg.in/natefinch/lumberjack.v2"
 	"gorm.io/driver/mysql"
@@ -15,10 +16,10 @@ import (
 	"time"
 )
 
-//func init() {
-//	v := &DatabaseInitializer{name: "mysql", order: 100}
-//	Manager[v.name] = v
-//}
+func init() {
+	initializer := &DatabaseInitializer{name: "DatabaseInitializer", order: 100}
+	ctx.Beans.Provide(&inject.Object{Name: initializer.GetName(), Value: initializer, Completed: true})
+}
 
 type DatabaseInitializer struct {
 	name  string
@@ -56,13 +57,15 @@ func (t *DatabaseInitializer) Initialize() {
 	sqlDB, _ := db.DB()
 	sqlDB.SetMaxIdleConns(dbConfig.MaxIdleConns)
 	sqlDB.SetMaxOpenConns(dbConfig.MaxOpenConns)
-	ctx.Db = db
+	// 管理数据库连接
+	ctx.Beans.Provide(&inject.Object{Name: "MysqlConnection", Value: db, Completed: true})
 }
 
 func (t *DatabaseInitializer) Close() {
-	if nil != ctx.Db {
-		db, _ := ctx.Db.DB()
-		_ = db.Close()
+	db := ctx.Beans.GetByName("MysqlConnection").(*gorm.DB)
+	if db != nil {
+		sqlDB, _ := db.DB()
+		_ = sqlDB.Close()
 	}
 }
 

@@ -1,4 +1,4 @@
-package injectv2
+package inject
 
 import (
     "fmt"

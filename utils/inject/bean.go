@@ -1,10 +1,13 @@
 package inject
 
 import (
+	"Thor/utils/invoke"
 	"github.com/samber/lo"
 	"reflect"
+	"strings"
 )
 
+// CycleProvide 循环提供Bean实例，需要制定bean tag标签
 func (g *Graph) CycleProvide(objs ...*Object) {
 	// 遍历objs数组
 	for _, obj := range objs {
@@ -24,14 +27,24 @@ func (g *Graph) CycleProvide(objs ...*Object) {
 			if !ok {
 				continue
 			}
+			// 根据;分割字符串，获取 bean的名称 和 bean的代理模式
+			tags := strings.Split(tag, ";")
 			// 如果没有指定bean tag的名称，则默认使用属性的类型名称
-			tag = lo.Ternary(len(tag) == 0, field.Type.Elem().Name(), tag)
+			name := lo.Ternary(len(tags[0]) == 0, field.Type.Elem().Name(), tags[0])
 			// 根据tag标签，从容器中获取对应的bean对象，如果存在，说明不需要自动创建
-			if _, ok = g.objects[tag]; ok {
+			if _, ok = g.objects[name]; ok {
 				continue
 			}
 			// 需要自动创建bean对象
-			g.Provide(&Object{Name: tag, Value: reflect.New(field.Type.Elem()).Interface()})
+			bean := reflect.New(field.Type.Elem()).Interface()
+			g.Provide(&Object{Name: name, Value: bean})
+			// 自动代理
+			if len(tags) <= 1 || tags[1] != "proxy" {
+				continue
+			}
+			invoke.NewMethodProxy(bean, func(_ any, method *invoke.Method, args []reflect.Value) []reflect.Value {
+				return method.Invoke(obj.Value, args)
+			})
 		}
 
 		// 检查Bean实例是否是指针类型

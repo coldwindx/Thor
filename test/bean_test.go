@@ -1,8 +1,12 @@
 package test
 
 import (
+	"Thor/bootstrap"
+	"Thor/ctx"
+	"Thor/src/services"
 	"Thor/utils/inject"
 	"github.com/stretchr/testify/assert"
+	"os"
 	"testing"
 )
 
@@ -27,4 +31,17 @@ func TestBeanAutoPopulate(t *testing.T) {
 
 	zoo := g.GetByName("zoo").(*Zoo)
 	assert.Equal(t, "cat:", zoo.Cat.GetName())
+}
+
+func TestServiceProxyWithInject(t *testing.T) {
+	// 指定环境变量
+	_ = os.Setenv("VIPER_CONFIG", "../resources/application.yaml")
+	bootstrap.Initialize()
+	defer bootstrap.Close()
+
+	jobServiceImpl := ctx.Beans.GetByName("JobServiceImpl").(*services.JobServiceImpl)
+	assert.Equal(t, "JobServiceImpl->JobMapper.Test()", jobServiceImpl.Test())
+
+	jobService := ctx.Beans.GetByName("JobService").(*services.JobService)
+	assert.Equal(t, "JobServiceImpl->JobMapper.Test()", jobService.Test())
 }

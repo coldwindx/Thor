@@ -1,7 +1,6 @@
 package bootstrap
 
 import (
-	"Thor/ctx"
 	"github.com/bwmarrin/snowflake"
 	"time"
 )
@@ -33,7 +32,7 @@ func (it *SnowflakeInitializer) Initialize() {
 	}
 	snowflake.Epoch = parse.UnixNano() / 1e6
 
-	ctx.Snowflake, err = snowflake.NewNode(1)
+	Snowflake, err = snowflake.NewNode(1)
 	if err != nil {
 		panic("雪花算法ID构造失败." + err.Error())
 	}

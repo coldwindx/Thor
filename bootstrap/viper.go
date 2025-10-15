@@ -2,7 +2,6 @@ package bootstrap
 
 import (
 	config2 "Thor/config"
-	"Thor/ctx"
 	"Thor/utils/inject"
 	"fmt"
 	"github.com/fsnotify/fsnotify"
@@ -12,7 +11,7 @@ import (
 
 func init() {
 	initializer := &ViperInitializer{name: "ViperInitializer", order: 1}
-	ctx.Beans.Provide(&inject.Object{Name: initializer.GetName(), Value: initializer, Completed: true})
+	Beans.Provide(&inject.Object{Name: initializer.GetName(), Value: initializer, Completed: true})
 }
 
 type ViperInitializer struct {

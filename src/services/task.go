@@ -1,7 +1,7 @@
 package services
 
 import (
-	"Thor/ctx"
+	"Thor/bootstrap"
 	"Thor/src/manager"
 	"Thor/src/models"
 	jsoniter "github.com/json-iterator/go"
@@ -39,7 +39,7 @@ func (it *TaskService) Create(task *models.Task) error {
 			}
 
 			j := new(models.Job)
-			j.Id = ctx.Snowflake.Generate().Int64()
+			j.Id = bootstrap.Snowflake.Generate().Int64()
 			j.TaskId = task.Id
 			j.Name = edge
 			j.Status = int(models.INITING)
@@ -66,7 +66,7 @@ func (it *TaskService) Create(task *models.Task) error {
 }
 
 func (it *TaskService) beforeInsert(task *models.Task) {
-	task.Id = ctx.Snowflake.Generate().Int64()
+	task.Id = bootstrap.Snowflake.Generate().Int64()
 	t := time.Now()
 	if task.CreatedAt.IsZero() {
 		task.CreatedAt = t
@@ -77,7 +77,7 @@ func (it *TaskService) beforeInsert(task *models.Task) {
 }
 
 func (it *TaskService) parsePipeline() ([]models.Pipeline, error) {
-	file, err := ctx.Statik.Open("/pipelines.json")
+	file, err := bootstrap.Statik.Open("/pipelines.json")
 	if err != nil {
 		return nil, err
 	}

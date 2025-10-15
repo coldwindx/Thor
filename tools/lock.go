@@ -1,7 +1,7 @@
 package tools
 
 import (
-	"Thor/ctx"
+	"Thor/bootstrap"
 	"Thor/utils"
 	"context"
 	"github.com/go-redis/redis/v8"
@@ -43,7 +43,8 @@ func Lock(name string, seconds int64) Interface {
 
 // 获取锁
 func (l *lock) Get() bool {
-	return ctx.Redis.SetNX(l.context, l.name, l.owner, time.Duration(l.seconds)*time.Second).Val()
+	client := bootstrap.Beans.GetByName("RedisClient").(*redis.Client)
+	return client.SetNX(l.context, l.name, l.owner, time.Duration(l.seconds)*time.Second).Val()
 }
 
 // 阻塞一段时间，尝试获取锁
@@ -62,12 +63,14 @@ func (l *lock) Block(seconds int64) bool {
 
 // 释放锁
 func (l *lock) Release() bool {
+	client := bootstrap.Beans.GetByName("RedisClient").(*redis.Client)
 	lua := redis.NewScript(luaRelease)
-	result := lua.Run(l.context, ctx.Redis, []string{l.name}, l.owner).Val().(int64)
+	result := lua.Run(l.context, client, []string{l.name}, l.owner).Val().(int64)
 	return 0 != result
 }
 
 // 强制释放锁
 func (l *lock) ForceRelease() {
-	ctx.Redis.Del(l.context, l.name).Val()
+	client := bootstrap.Beans.GetByName("RedisClient").(*redis.Client)
+	client.Del(l.context, l.name).Val()
 }

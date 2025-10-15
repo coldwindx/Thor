@@ -2,7 +2,6 @@ package bootstrap
 
 import (
 	"Thor/config"
-	"Thor/ctx"
 	"Thor/utils/inject"
 	"go.uber.org/zap"
 	"gopkg.in/natefinch/lumberjack.v2"
@@ -18,7 +17,7 @@ import (
 
 func init() {
 	initializer := &DatabaseInitializer{name: "DatabaseInitializer", order: 100}
-	ctx.Beans.Provide(&inject.Object{Name: initializer.GetName(), Value: initializer, Completed: true})
+	Beans.Provide(&inject.Object{Name: initializer.GetName(), Value: initializer, Completed: true})
 }
 
 type DatabaseInitializer struct {
@@ -51,18 +50,18 @@ func (t *DatabaseInitializer) Initialize() {
 		Logger:                                   getGormLogger(),
 	})
 	if nil != err {
-		ctx.Logger.Error("mysql connect failed, err:", zap.Any("err", err))
+		Logger.Error("mysql connect failed, err:", zap.Any("err", err))
 		return
 	}
 	sqlDB, _ := db.DB()
 	sqlDB.SetMaxIdleConns(dbConfig.MaxIdleConns)
 	sqlDB.SetMaxOpenConns(dbConfig.MaxOpenConns)
 	// 管理数据库连接
-	ctx.Beans.Provide(&inject.Object{Name: "MysqlConnection", Value: db, Completed: true})
+	Beans.Provide(&inject.Object{Name: "MysqlConnection", Value: db, Completed: true})
 }
 
 func (t *DatabaseInitializer) Close() {
-	db := ctx.Beans.GetByName("MysqlConnection").(*gorm.DB)
+	db := Beans.GetByName("MysqlConnection").(*gorm.DB)
 	if db != nil {
 		sqlDB, _ := db.DB()
 		_ = sqlDB.Close()

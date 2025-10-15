@@ -1,8 +1,8 @@
 package controller
 
 import (
+	"Thor/bootstrap"
 	"Thor/common"
-	"Thor/ctx"
 	"Thor/src/middleware"
 	"Thor/src/models"
 	"Thor/src/request"
@@ -13,7 +13,7 @@ import (
 )
 
 func init() {
-	ctx.Routes = append(ctx.Routes, func(r *gin.Engine) {
+	bootstrap.Routes = append(bootstrap.Routes, func(r *gin.Engine) {
 		group1 := r.Group("/user")
 		group1.POST("/register", Register)
 

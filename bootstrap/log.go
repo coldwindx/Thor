@@ -2,7 +2,6 @@ package bootstrap
 
 import (
 	"Thor/config"
-	"Thor/ctx"
 	"Thor/utils"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -78,7 +77,7 @@ func (t *LogInitializer) Initialize() {
 		encoder = zapcore.NewConsoleEncoder(encoderConfig)
 	}
 	core := zapcore.NewCore(encoder, getLogWriter(), level)
-	ctx.Logger = zap.New(core, options...)
+	Logger = zap.New(core, options...)
 }
 
 func (t *LogInitializer) Close() {

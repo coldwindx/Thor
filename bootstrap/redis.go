@@ -2,17 +2,16 @@ package bootstrap
 
 import (
 	"Thor/config"
-	"Thor/ctx"
+	"Thor/utils/inject"
 	"context"
 	"github.com/go-redis/redis/v8"
-	"go.uber.org/zap"
 	"strconv"
 )
 
-//func init() {
-//	v := &RedisInitializer{name: "redis", order: 3}
-//	Initializers[v.name] = v
-//}
+func init() {
+	v := &RedisInitializer{name: "RedisInitializer", order: 3}
+	Beans.Provide(&inject.Object{Name: v.GetName(), Value: v, Completed: true})
+}
 
 type RedisInitializer struct {
 	name  string
@@ -26,16 +25,16 @@ func (ins *RedisInitializer) GetOrder() int {
 	return ins.order
 }
 func (ins *RedisInitializer) Initialize() {
-	ctx.Redis = redis.NewClient(&redis.Options{
+	client := redis.NewClient(&redis.Options{
 		Addr:     config.Config.Redis.Host + ":" + strconv.Itoa(config.Config.Redis.Port),
 		Password: config.Config.Redis.Password,
 		DB:       config.Config.Redis.DB,
 	})
 
-	_, err := ctx.Redis.Ping(context.Background()).Result()
-	if nil != err {
-		ctx.Logger.Error("redis connect ping failed.", zap.Any("err", err))
+	if _, err := client.Ping(context.Background()).Result(); err != nil {
+		panic(err)
 	}
+	Beans.Provide(&inject.Object{Name: "RedisClient", Value: client, Completed: true})
 }
 func (ins *RedisInitializer) Close() {
 

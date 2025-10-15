@@ -1,8 +1,8 @@
 package controller
 
 import (
+	"Thor/bootstrap"
 	"Thor/common"
-	"Thor/ctx"
 	"Thor/src/models"
 	"Thor/src/request"
 	"Thor/src/services"
@@ -14,8 +14,8 @@ import (
 func init() {
 	var TaskControllerImpl = new(TaskController)
 	// 路由注入
-	ctx.Routes = append(ctx.Routes, func(r *gin.Engine) {
-		ctx.Router.POST("/task/create", TaskControllerImpl.Create)
+	bootstrap.Routes = append(bootstrap.Routes, func(r *gin.Engine) {
+		bootstrap.Router.POST("/task/create", TaskControllerImpl.Create)
 	})
 }
 

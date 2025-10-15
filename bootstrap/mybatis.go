@@ -2,8 +2,6 @@ package bootstrap
 
 import (
 	"Thor/config"
-	"Thor/ctx"
-	_ "Thor/src/mapper"
 	"fmt"
 	"github.com/rakyll/statik/fs"
 	"github.com/zhuxiujia/GoMybatis"
@@ -32,7 +30,7 @@ func (ts *MybatisInitializer) GetOrder() int {
 
 func (ts *MybatisInitializer) Initialize() {
 	var err error
-	ctx.Statik, err = fs.New()
+	Statik, err = fs.New()
 	if err != nil {
 		panic("err: " + err.Error())
 	}
@@ -42,18 +40,18 @@ func (ts *MybatisInitializer) Initialize() {
 		return
 	}
 	dsn := dbConfig.UserName + ":" + dbConfig.Password + "@tcp(" + dbConfig.Host + ":" + strconv.Itoa(dbConfig.Port) + ")/" + dbConfig.Database + "?charset=" + dbConfig.Charset + "&parseTime=True&loc=Local"
-	ctx.MybatisEngine = GoMybatis.GoMybatisEngine{}.New()
-	ctx.DefaultSqlDB, err = ctx.MybatisEngine.Open("mysql", dsn)
+	MybatisEngine = GoMybatis.GoMybatisEngine{}.New()
+	DefaultSqlDB, err = MybatisEngine.Open("mysql", dsn)
 	if err != nil {
 		_ = fmt.Errorf("数据库链接失败, err: %v\n", err)
 		return
 	}
-	ctx.DefaultSqlDB.SetMaxIdleConns(dbConfig.MaxIdleConns)
-	ctx.DefaultSqlDB.SetMaxOpenConns(dbConfig.MaxOpenConns)
+	DefaultSqlDB.SetMaxIdleConns(dbConfig.MaxIdleConns)
+	DefaultSqlDB.SetMaxOpenConns(dbConfig.MaxOpenConns)
 	// step 绑定xml与mapper
-	for _, bind := range ctx.MybatisMapperBinds {
+	for _, bind := range MybatisMapperBinds {
 		// 加载xml配置文件
-		xml, err := ctx.Statik.Open(bind.XmlFile)
+		xml, err := Statik.Open(bind.XmlFile)
 		if err != nil {
 			panic("从statik加载xml配置失败")
 		}
@@ -63,7 +61,7 @@ func (ts *MybatisInitializer) Initialize() {
 			panic("加载mybatis实现逻辑失败")
 		}
 
-		ctx.MybatisEngine.WriteMapperPtr(bind.Mapper, all)
+		MybatisEngine.WriteMapperPtr(bind.Mapper, all)
 	}
 }
 

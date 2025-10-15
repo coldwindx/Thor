@@ -1,7 +1,6 @@
 package bootstrap
 
 import (
-	"Thor/ctx"
 	"github.com/gin-gonic/gin"
 )
 
@@ -22,7 +21,7 @@ func (t *RouterInitializer) GetOrder() int {
 	return t.order
 }
 func (*RouterInitializer) Initialize() {
-	ctx.Router = gin.Default()
+	Router = gin.Default()
 }
 
 func (*RouterInitializer) Close() {

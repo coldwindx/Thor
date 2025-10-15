@@ -2,7 +2,6 @@ package bootstrap
 
 import (
 	"Thor/config"
-	"Thor/ctx"
 	"fmt"
 	"github.com/streadway/amqp"
 	"go.uber.org/zap"
@@ -32,18 +31,18 @@ func (ts *RabbitMqInitializer) Initialize() {
 	log.Println("init rabbit...")
 	var err error
 	var c = config.Config.RabbitMq
-	ctx.RabbitConn, err = amqp.Dial(fmt.Sprintf("amqp://%s:%s@%s:%s/admin_vhost", c.User, c.Password, c.Addr, strconv.Itoa(c.Port)))
+	RabbitConn, err = amqp.Dial(fmt.Sprintf("amqp://%s:%s@%s:%s/admin_vhost", c.User, c.Password, c.Addr, strconv.Itoa(c.Port)))
 	if nil != err {
-		ctx.Logger.Error("new mq conn err.", zap.Any("err", err))
+		Logger.Error("new mq conn err.", zap.Any("err", err))
 		return
 	}
-	ctx.RabbitChannel, err = ctx.RabbitConn.Channel()
+	RabbitChannel, err = RabbitConn.Channel()
 	if nil != err {
-		ctx.Logger.Error("new mq conn err.", zap.Any("err", err))
+		Logger.Error("new mq conn err.", zap.Any("err", err))
 	}
 }
 
 func (ts *RabbitMqInitializer) Close() {
-	_ = ctx.RabbitChannel.Close()
-	_ = ctx.RabbitConn.Close()
+	_ = RabbitChannel.Close()
+	_ = RabbitConn.Close()
 }

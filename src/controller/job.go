@@ -1,8 +1,8 @@
 package controller
 
 import (
+	"Thor/bootstrap"
 	"Thor/common"
-	"Thor/ctx"
 	"Thor/src/models"
 	"Thor/src/request"
 	"Thor/src/services"
@@ -13,11 +13,11 @@ import (
 
 func init() {
 	var impl = new(JobController)
-	ctx.Routes = append(ctx.Routes, func(r *gin.Engine) {
-		ctx.Router.POST("/job/insert", impl.Insert)
-		ctx.Router.POST("/job/delete", impl.Delete)
-		ctx.Router.POST("/job/query", impl.Query)
-		ctx.Router.POST("/job/callback", impl.Callback)
+	bootstrap.Routes = append(bootstrap.Routes, func(r *gin.Engine) {
+		bootstrap.Router.POST("/job/insert", impl.Insert)
+		bootstrap.Router.POST("/job/delete", impl.Delete)
+		bootstrap.Router.POST("/job/query", impl.Query)
+		bootstrap.Router.POST("/job/callback", impl.Callback)
 	})
 }
 

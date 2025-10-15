@@ -1,9 +1,9 @@
 package middleware
 
 import (
+	"Thor/bootstrap"
 	"Thor/common"
 	"Thor/config"
-	"Thor/ctx"
 	"Thor/src/services"
 	"Thor/tools"
 	"github.com/dgrijalva/jwt-go"
@@ -49,7 +49,7 @@ func JWTAuth(GuardName string) gin.HandlerFunc {
 			if lock.Get() {
 				err, user := services.JwtService.GetUserInfo(GuardName, claims.Id)
 				if nil != err {
-					ctx.Logger.Error(err.Error())
+					bootstrap.Logger.Error(err.Error())
 					lock.Release()
 				} else {
 					newToken, _, _ := services.JwtService.CreateToken(GuardName, user)

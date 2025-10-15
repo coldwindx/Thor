@@ -1,7 +1,7 @@
 package manager
 
 import (
-	"Thor/ctx"
+	"Thor/bootstrap"
 	"Thor/src/mapper"
 	"Thor/src/models"
 	"fmt"
@@ -12,7 +12,7 @@ import (
 func init() {
 	var impl = new(TaskManagerImpl)
 	impl.TaskManager.Create = impl.Create
-	GoMybatis.AopProxyService(&impl.TaskManager, &ctx.MybatisEngine)
+	GoMybatis.AopProxyService(&impl.TaskManager, &bootstrap.MybatisEngine)
 }
 
 type TaskManager struct {

@@ -1,58 +1,61 @@
 package bootstrap
 
 import (
-	"Thor/ctx"
-	"Thor/tools"
+	"Thor/utils/inject"
+	"errors"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
-	"go.uber.org/zap"
+	"github.com/samber/lo"
 	"reflect"
 	"strings"
 )
 
 func init() {
-	v := &ValidatorInitializer{name: "validator", order: 500}
-	Manager[v.name] = v
+	v := &ValidatorInitializer{name: "ValidatorInitializer", order: 500}
+	Beans.Provide(&inject.Object{Name: "ValidatorInitializer", Value: v, Completed: true})
 }
 
 type ValidatorInitializer struct {
-	name  string
-	order int
+	name       string
+	order      int
+	Validators map[string]Validator `inject:""`
 }
 
-func (t *ValidatorInitializer) GetName() string {
-	return t.name
+func (v *ValidatorInitializer) GetName() string {
+	return v.name
 }
 
-func (t *ValidatorInitializer) GetOrder() int {
-	return t.order
+func (v *ValidatorInitializer) GetOrder() int {
+	return v.order
 }
 
-func (*ValidatorInitializer) Initialize() {
+func (v *ValidatorInitializer) Initialize() {
 	// step1 启动验证器引擎
-	engine := binding.Validator.Engine()
-	v, ok := engine.(*validator.Validate)
-	if !ok {
-		ctx.Logger.Error("load validator failed")
-		return
+	engine := binding.Validator.Engine().(*validator.Validate)
+	if nil == engine {
+		panic(errors.New("validator_ engine not found"))
 	}
 
 	// step2 注册自定义验证器
-	for name, function := range tools.ValidateFuncStore {
-		if err := v.RegisterValidation(name, function); nil != err {
-			ctx.Logger.Error("load validate function fail, err:", zap.Any("err", err))
+	for _, validator_ := range v.Validators {
+		if err := engine.RegisterValidation(validator_.GetName(), validator_.Validate); err != nil {
+			panic(err)
 		}
 	}
+
 	// step3 注册自定义json tag函数
-	v.RegisterTagNameFunc(func(fld reflect.StructField) string {
+	engine.RegisterTagNameFunc(func(fld reflect.StructField) string {
 		name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
-		if "-" == name {
-			return ""
-		}
-		return name
+		return lo.Ternary[string](name == "-", "", name)
 	})
 }
 
 func (*ValidatorInitializer) Close() {
 
+}
+
+// Validator 自定义验证器接口
+type Validator interface {
+	GetName() string
+	Validate(fl validator.FieldLevel) bool
 }

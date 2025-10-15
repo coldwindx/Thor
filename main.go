@@ -5,7 +5,6 @@ package main
 
 import (
 	"Thor/bootstrap"
-	"Thor/ctx"
 	_ "Thor/statik"
 	"time"
 )
@@ -14,7 +13,7 @@ func main() {
 	// step1 初始化配置
 	bootstrap.Initialize()
 	defer bootstrap.Close()
-	ctx.Logger.Info("bootstrap init success!")
+	bootstrap.Logger.Info("bootstrap init success!")
 	// step 消息队列
 	//go rabbitmq.Producer()
 	//go rabbitmq.Consumer()

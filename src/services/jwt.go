@@ -1,21 +1,28 @@
 package services
 
 import (
+	"Thor/bootstrap"
 	"Thor/config"
-	"Thor/ctx"
 	"Thor/utils"
+	"Thor/utils/inject"
 	"context"
 	"errors"
 	"github.com/dgrijalva/jwt-go"
+	"github.com/go-redis/redis/v8"
 	"go.uber.org/zap"
 	"strconv"
 	"time"
 )
 
 type jwtService struct {
+	Redis *redis.Client `inject:"RedisClient"`
 }
 
 var JwtService = new(jwtService)
+
+func init() {
+	bootstrap.Beans.Provide(&inject.Object{Name: "JwtService", Value: JwtService})
+}
 
 // 所有需要token的用户模型接口
 type JwtUser interface {
@@ -56,25 +63,25 @@ func (service *jwtService) getBlackListKey(token string) string {
 func (service *jwtService) JoinBlackList(token *jwt.Token) (err error) {
 	now := time.Now().Unix()
 	timer := time.Duration(token.Claims.(*CustomClaims).ExpiresAt-now) * time.Second
-	result := ctx.Redis.SetNX(context.Background(), service.getBlackListKey(token.Raw), now, timer)
+	result := service.Redis.SetNX(context.Background(), service.getBlackListKey(token.Raw), now, timer)
 	return result.Err()
 }
 
 func (service *jwtService) IsInBlackList(token string) bool {
 	key := service.getBlackListKey(token)
-	joinUnixStr, err := ctx.Redis.Get(context.Background(), key).Result()
+	joinUnixStr, err := service.Redis.Get(context.Background(), key).Result()
 	if nil != err {
-		ctx.Logger.Error("get key from redis fail.", zap.Any("key", key), zap.Any("err", err))
+		bootstrap.Logger.Error("get key from redis fail.", zap.Any("key", key), zap.Any("err", err))
 		return false
 	}
 	if "" == joinUnixStr {
-		ctx.Logger.Error("value got from redis is empty.", zap.Any("key", key))
+		bootstrap.Logger.Error("value got from redis is empty.", zap.Any("key", key))
 		return false
 	}
 
 	joinUnix, err := strconv.ParseInt(joinUnixStr, 10, 64)
 	if nil != err {
-		ctx.Logger.Error("strconv value fail.", zap.Any("value", joinUnixStr), zap.Any("err", err))
+		bootstrap.Logger.Error("strconv value fail.", zap.Any("value", joinUnixStr), zap.Any("err", err))
 		return false
 	}
 	return config.Config.Jwt.JwtBlacklistGracePeriod <= time.Now().Unix()-joinUnix

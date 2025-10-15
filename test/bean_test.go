@@ -2,7 +2,6 @@ package test
 
 import (
 	"Thor/bootstrap"
-	"Thor/ctx"
 	"Thor/src/services"
 	"Thor/utils/inject"
 	"github.com/stretchr/testify/assert"
@@ -27,7 +26,7 @@ func TestBeanAutoPopulate(t *testing.T) {
 
 	g := inject.NewGraph()
 	g.CycleProvide(&inject.Object{Name: "zoo", Value: &Zoo{}})
-	_ = g.Populate()
+	g.Populate()
 
 	zoo := g.GetByName("zoo").(*Zoo)
 	assert.Equal(t, "cat:", zoo.Cat.GetName())
@@ -39,9 +38,9 @@ func TestServiceProxyWithInject(t *testing.T) {
 	bootstrap.Initialize()
 	defer bootstrap.Close()
 
-	jobServiceImpl := ctx.Beans.GetByName("JobServiceImpl").(*services.JobServiceImpl)
+	jobServiceImpl := bootstrap.Beans.GetByName("JobServiceImpl").(*services.JobServiceImpl)
 	assert.Equal(t, "JobServiceImpl->JobMapper.Test()", jobServiceImpl.Test())
 
-	jobService := ctx.Beans.GetByName("JobService").(*services.JobService)
+	jobService := bootstrap.Beans.GetByName("JobService").(*services.JobService)
 	assert.Equal(t, "JobServiceImpl->JobMapper.Test()", jobService.Test())
 }

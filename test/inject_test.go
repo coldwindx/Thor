@@ -10,7 +10,7 @@ func TestGetBeanByName(t *testing.T) {
 	beans := inject.NewGraph()
 	beans.Provide(&inject.Object{Name: "cat", Value: &Cat{}})
 	beans.Provide(&inject.Object{Name: "dog", Value: &Dog{}})
-	_ = beans.Populate()
+	beans.Populate()
 
 	assert.Equal(t, "cat:", beans.GetByName("cat").(*Cat).GetName())
 	assert.Equal(t, "dog:", beans.GetByName("dog").(*Dog).GetName())
@@ -24,7 +24,7 @@ func TestInjectByNamed(t *testing.T) {
 	beans := inject.NewGraph()
 	beans.Provide(&inject.Object{Name: "cat", Value: &Cat{Name: "kitty"}})
 	beans.Provide(&inject.Object{Name: "zoo", Value: &Zoo{}})
-	_ = beans.Populate()
+	beans.Populate()
 
 	zoo := beans.GetByName("zoo").(*Zoo)
 	assert.Equal(t, "cat:kitty", zoo.Cat.GetName())
@@ -38,7 +38,7 @@ func TestInjectByTyped(t *testing.T) {
 	beans := inject.NewGraph()
 	beans.Provide(&inject.Object{Name: "cat", Value: &Cat{Name: "kitty"}})
 	beans.Provide(&inject.Object{Name: "zoo", Value: &Zoo{}})
-	_ = beans.Populate()
+	beans.Populate()
 
 	zoo := beans.GetByName("zoo").(*Zoo)
 	assert.Equal(t, "cat:kitty", zoo.Cat.GetName())
@@ -52,7 +52,7 @@ func TestInjectByUnnamedInterface(t *testing.T) {
 	beans := inject.NewGraph()
 	beans.Provide(&inject.Object{Name: "cat", Value: &Cat{Name: "kitty"}})
 	beans.Provide(&inject.Object{Name: "zoo", Value: &Zoo{}})
-	_ = beans.Populate()
+	beans.Populate()
 
 	zoo := beans.GetByName("zoo").(*Zoo)
 	assert.Equal(t, "cat:kitty", zoo.Animal.GetName())
@@ -66,7 +66,7 @@ func TestInjectByNamedInterface(t *testing.T) {
 	beans := inject.NewGraph()
 	beans.Provide(&inject.Object{Name: "cat", Value: &Cat{Name: "kitty"}})
 	beans.Provide(&inject.Object{Name: "zoo", Value: &Zoo{}})
-	_ = beans.Populate()
+	beans.Populate()
 
 	zoo := beans.GetByName("zoo").(*Zoo)
 	assert.Equal(t, "cat:kitty", zoo.Animal.GetName())
@@ -81,7 +81,7 @@ func TestInjectByList(t *testing.T) {
 	beans.Provide(&inject.Object{Name: "cat", Value: &Cat{Name: "kitty"}})
 	beans.Provide(&inject.Object{Name: "dog", Value: &Dog{Name: "fido"}})
 	beans.Provide(&inject.Object{Name: "zoo", Value: &Zoo{}})
-	_ = beans.Populate()
+	beans.Populate()
 
 	zoo := beans.GetByName("zoo").(*Zoo)
 	assert.Equal(t, "cat:kitty", zoo.Animals[0].GetName())
@@ -97,7 +97,7 @@ func TestInjectByMap(t *testing.T) {
 	beans.Provide(&inject.Object{Name: "cat", Value: &Cat{Name: "kitty"}})
 	beans.Provide(&inject.Object{Name: "dog", Value: &Dog{Name: "fido"}})
 	beans.Provide(&inject.Object{Name: "zoo", Value: &Zoo{}})
-	_ = beans.Populate()
+	beans.Populate()
 
 	zoo := beans.GetByName("zoo").(*Zoo)
 	assert.Equal(t, "cat:kitty", zoo.Animals["cat"].GetName())
@@ -118,7 +118,7 @@ func TestCycleInject(t *testing.T) {
 	beans.Provide(&inject.Object{Name: "cat", Value: &Cat{Name: "kitty"}})
 	beans.Provide(&inject.Object{Name: "dog", Value: &Dog{Name: "fido"}})
 	beans.Provide(&inject.Object{Name: "zoo", Value: &Zoo{}})
-	_ = beans.Populate()
+	beans.Populate()
 
 	city := beans.GetByName("city").(*City)
 	assert.Equal(t, "cat:kitty", city.Zoo.Animals["cat"].GetName())

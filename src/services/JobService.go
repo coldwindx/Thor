@@ -31,16 +31,16 @@ func (j *JobServiceImpl) Test() string {
 
 func (it *JobServiceImpl) Insert(job *models.Job) (int, error) {
 	it.beforeInsert(job)
-	return mapper.JobMapperImpl.Insert(*job)
+	return it.JobMapper.Insert(*job)
 }
 
 func (it *JobServiceImpl) Delete(query models.JobQuery) (int, error) {
-	return mapper.JobMapperImpl.Delete(query)
+	return it.JobMapper.Delete(query)
 }
 
-func (it *JobServiceImpl) Query(query *models.JobQuery) ([]models.Job, error) {
+func (it *JobServiceImpl) Query(query *models.JobQuery) ([]*models.Job, error) {
 	it.beforeQuery(query)
-	return mapper.JobMapperImpl.Query(context.Background(), query)
+	return it.JobMapper.Query(context.Background(), query)
 }
 
 func (it *JobServiceImpl) beforeInsert(job *models.Job) {

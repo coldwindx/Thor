@@ -3,6 +3,7 @@ package test
 import (
 	"Thor/bootstrap"
 	"Thor/src/mapper"
+	"context"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
 	"os"
@@ -32,5 +33,5 @@ func TestMapperProxy(t *testing.T) {
 	bootstrap.Beans.Populate()
 
 	jobMapper := bootstrap.Beans.GetByName("JobMapper").(*mapper.JobMapper)
-	assert.Equal(t, "JobMapper.Test()", jobMapper.Test())
+	assert.Equal(t, "JobMapper.Test()", jobMapper.Test(context.Background()))
 }

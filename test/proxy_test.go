@@ -7,6 +7,7 @@ import (
 	"Thor/utils/invoke"
 	proxy2 "Thor/utils/proxy"
 	_ "Thor/utils/transaction"
+	"context"
 	"fmt"
 	"github.com/stretchr/testify/assert"
 	"os"
@@ -35,5 +36,5 @@ func TestProxyMapper(t *testing.T) {
 
 	bean := bootstrap.Beans.GetByName("JobMapper")
 	jobMapper := bean.(*mapper.JobMapper)
-	assert.Equal(t, "JobMapper.Test()", jobMapper.Test())
+	assert.Equal(t, "JobMapper.Test()", jobMapper.Test(context.Background()))
 }

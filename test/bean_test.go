@@ -4,6 +4,7 @@ import (
 	"Thor/bootstrap"
 	"Thor/src/services"
 	"Thor/utils/inject"
+	"context"
 	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"
@@ -39,7 +40,7 @@ func TestServiceProxyWithInject(t *testing.T) {
 	defer bootstrap.Close()
 
 	jobServiceImpl := bootstrap.Beans.GetByName("JobServiceImpl").(*services.JobServiceImpl)
-	assert.Equal(t, "JobServiceImpl->JobMapper.Test()", jobServiceImpl.Test())
+	assert.Equal(t, "JobServiceImpl->JobMapper.Test()", jobServiceImpl.Test(context.Background()))
 
 	jobService := bootstrap.Beans.GetByName("JobService").(*services.JobService)
 	assert.Equal(t, "JobServiceImpl->JobMapper.Test()", jobService.Test())

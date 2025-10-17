@@ -25,8 +25,8 @@ type JobServiceImpl struct {
 	JobMapper  *mapper.JobMapper `inject:"JobMapper"`
 }
 
-func (j *JobServiceImpl) Test() string {
-	return "JobServiceImpl->" + j.JobMapper.Test()
+func (j *JobServiceImpl) Test(ctx context.Context) string {
+	return "JobServiceImpl->" + j.JobMapper.Test(ctx)
 }
 
 func (it *JobServiceImpl) Insert(job *models.Job) (int, error) {

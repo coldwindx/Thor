@@ -13,7 +13,7 @@ func init() {
 }
 
 type JobMapper struct {
-	Test   func() string `transaction:"read"`
+	Test   func(ctx context.Context) string `transaction:"read"`
 	Insert func(job models.Job) (int, error)
 	Query  func(ctx context.Context, query *models.JobQuery) ([]*models.Job, error)
 	Delete func(jobQuery models.JobQuery) (int, error)
@@ -23,7 +23,7 @@ type JobMapperImpl struct {
 	JobMapper *JobMapper `bean:"JobMapper;proxy"`
 }
 
-func (j *JobMapperImpl) Test() string {
+func (j *JobMapperImpl) Test(ctx context.Context) string {
 	return "JobMapper.Test()"
 }
 

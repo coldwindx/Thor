@@ -2,6 +2,7 @@ package inject
 
 import (
 	"Thor/utils/invoke"
+	"Thor/utils/proxy"
 	"github.com/samber/lo"
 	"reflect"
 	"strings"
@@ -42,7 +43,7 @@ func (g *Graph) CycleProvide(objs ...*Object) {
 			if len(tags) <= 1 || tags[1] != "proxy" {
 				continue
 			}
-			invoke.NewMethodProxy(bean, func(_ any, method *invoke.Method, args []reflect.Value) []reflect.Value {
+			proxy.NewMethodProxy(bean, func(_ any, method *invoke.Method, args []reflect.Value) []reflect.Value {
 				return method.Invoke(obj.Value, args)
 			})
 		}

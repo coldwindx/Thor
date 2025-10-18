@@ -20,7 +20,7 @@ type JobMapper struct {
 }
 
 type JobMapperImpl struct {
-	Db        *bootstrap.DBClient `inject:"DBClient"`
+	DB        *bootstrap.DBClient `inject:"DBClient"`
 	JobMapper *JobMapper          `bean:"JobMapper;proxy"`
 }
 
@@ -30,7 +30,7 @@ func (j *JobMapperImpl) Test(ctx context.Context) string {
 
 func (j *JobMapperImpl) Insert(ctx context.Context, job *do.Job) (int64, error) {
 	// 插入job
-	err := j.Db.DB(ctx).Create(job).Error
+	err := j.DB.Session(ctx).Create(job).Error
 	return job.ID, err
 }
 

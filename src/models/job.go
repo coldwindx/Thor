@@ -18,33 +18,24 @@ const (
 
 type Job struct {
 	Id        int64     `json:"id"`
+	Type      string    `json:"type"`
 	Name      string    `json:"name"`
-	TaskId    int64     `json:"task_id"`
 	Input     string    `json:"input"`
 	Output    string    `json:"output"`
 	Options   string    `json:"options"`
-	Status    int       `json:"status"`
-	Locked    int       `json:"locked"`
-	Retry     int       `json:"retry"`
-	AwakenAt  time.Time `json:"awaken_at"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 	Deleted   int       `json:"deleted"`
 }
-
 type JobQuery struct {
-	Id           int64     `json:"id"`
-	Name         string    `json:"name"`
-	TaskId       int64     `json:"task_id"`
-	Input        string    `json:"input"`
-	Output       string    `json:"output"`
-	Options      string    `json:"options"`
-	Status       int       `json:"status"`
-	Retry        int       `json:"retry"`
-	Locked       int       `json:"locked"`
-	AwakenAt     time.Time `json:"awaken_at"`
-	CreatedAfter time.Time `json:"created_after"`
-	UpdatedAt    time.Time `json:"updated_at"`
-	Deleted      int       `json:"deleted"`
-	PageSize     int       `json:"page_size"`
+	Id        int64     `json:"id"`
+	Type      string    `json:"type"`
+	Name      string    `json:"name"`
+	Input     string    `json:"input"`
+	Output    string    `json:"output"`
+	Options   string    `json:"options"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+	Deleted   int       `json:"deleted"`
+	PageSize  int       `json:"page_size"`
 }

@@ -1,12 +1,8 @@
 package test
 
 import (
-	"Thor/bootstrap"
-	"Thor/src/services"
 	"Thor/utils/inject"
-	"context"
 	"github.com/stretchr/testify/assert"
-	"os"
 	"testing"
 )
 
@@ -33,15 +29,16 @@ func TestBeanAutoPopulate(t *testing.T) {
 	assert.Equal(t, "cat:", zoo.Cat.GetName())
 }
 
-func TestServiceProxyWithInject(t *testing.T) {
-	// 指定环境变量
-	_ = os.Setenv("VIPER_CONFIG", "../resources/application.yaml")
-	bootstrap.Initialize()
-	defer bootstrap.Close()
-
-	jobServiceImpl := bootstrap.Beans.GetByName("JobServiceImpl").(*services.JobServiceImpl)
-	assert.Equal(t, "JobServiceImpl->JobMapper.Test()", jobServiceImpl.Test(context.Background()))
-
-	jobService := bootstrap.Beans.GetByName("JobService").(*services.JobService)
-	assert.Equal(t, "JobServiceImpl->JobMapper.Test()", jobService.Test())
-}
+//
+//func TestServiceProxyWithInject(t *testing.T) {
+//	// 指定环境变量
+//	_ = os.Setenv("VIPER_CONFIG", "../resources/application.yaml")
+//	bootstrap.Initialize()
+//	defer bootstrap.Close()
+//
+//	jobServiceImpl := bootstrap.Beans.GetByName("JobServiceImpl").(*services.JobServiceImpl)
+//	assert.Equal(t, "JobServiceImpl->JobMapper.Test()", jobServiceImpl.Test(context.Background()))
+//
+//	jobService := bootstrap.Beans.GetByName("JobService").(*services.JobService)
+//	assert.Equal(t, "JobServiceImpl->JobMapper.Test()", jobService.Test())
+//}

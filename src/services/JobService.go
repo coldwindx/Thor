@@ -4,20 +4,18 @@ import (
 	"Thor/bootstrap"
 	"Thor/src/mapper"
 	"Thor/src/models"
+	"Thor/src/models/do"
+	"Thor/utils/beans"
 	"Thor/utils/inject"
 	"context"
-	"time"
 )
 
 func init() {
-	bootstrap.Beans.CycleProvide(&inject.Object{Name: "JobServiceImpl", Value: &JobServiceImpl{}})
+	bootstrap.Beans.CycleProvide(&inject.Object{Name: "JobServiceImpl", Value: new(JobServiceImpl)})
 }
 
 type JobService struct {
-	Test   func() string
-	Insert func(job *models.Job) (int, error)
-	Delete func(query models.JobQuery) (int, error)
-	Query  func(query *models.JobQuery) ([]models.Job, error)
+	Create func(ctx context.Context, job *models.Job) (int64, error)
 }
 
 type JobServiceImpl struct {
@@ -25,40 +23,13 @@ type JobServiceImpl struct {
 	JobMapper  *mapper.JobMapper `inject:"JobMapper"`
 }
 
-func (j *JobServiceImpl) Test(ctx context.Context) string {
-	return "JobServiceImpl->" + j.JobMapper.Test(ctx)
-}
-
-func (it *JobServiceImpl) Insert(job *models.Job) (int, error) {
-	it.beforeInsert(job)
-	return it.JobMapper.Insert(*job)
-}
-
-func (it *JobServiceImpl) Delete(query models.JobQuery) (int, error) {
-	return it.JobMapper.Delete(query)
-}
-
-func (it *JobServiceImpl) Query(query *models.JobQuery) ([]*models.Job, error) {
-	it.beforeQuery(query)
-	return it.JobMapper.Query(context.Background(), query)
-}
-
-func (it *JobServiceImpl) beforeInsert(job *models.Job) {
-	job.Id = bootstrap.Snowflake.Generate().Int64()
-	t := time.Now()
-	if job.CreatedAt.IsZero() {
-		job.CreatedAt = t
+func (jsl *JobServiceImpl) Create(ctx context.Context, job *models.Job) (int64, error) {
+	// 转换为DO对象
+	jobDo := &do.Job{}
+	if err := beans.Copy(job).To(jobDo); err != nil {
+		return 0, err
 	}
-	if job.AwakenAt.IsZero() {
-		job.AwakenAt = t
-	}
-	if job.UpdatedAt.IsZero() {
-		job.UpdatedAt = t
-	}
-}
-
-func (it *JobServiceImpl) beforeQuery(query *models.JobQuery) {
-	if query.CreatedAfter.IsZero() {
-		query.CreatedAfter = time.Now()
-	}
+	// 插入job
+	id, err := jsl.JobMapper.Insert(ctx, jobDo)
+	return id, err
 }

@@ -31,6 +31,7 @@ func NewMethodProxy(itf any, handler invoke.InvocationMethod) any {
             continue
         }
 
+        //fmt.Println("[proxy] >>>", field.Name, field.Type)
         // 创建代理方法
         proxy := reflect.MakeFunc(field.Type, func(args []reflect.Value) []reflect.Value {
             // 获取可行代理

@@ -3,7 +3,7 @@ package test
 import (
 	"Thor/src/models"
 	"Thor/src/models/do"
-	"Thor/utils/beans"
+	"Thor/utils"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -11,7 +11,7 @@ import (
 func TestBeanCopy(t *testing.T) {
 	job := &models.Job{Name: "test"}
 	jobDo := &do.Job{}
-	err := beans.Copy(job).To(jobDo)
+	err := utils.Copy(job).To(jobDo)
 	assert.Nil(t, err)
 	assert.Equal(t, job.Name, jobDo.Name)
 }

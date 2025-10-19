@@ -1,7 +1,6 @@
-package beans
+package utils
 
 import (
-	"context"
 	"fmt"
 	"reflect"
 )
@@ -30,7 +29,7 @@ func (dc *DeepCopier) To(dst any) error {
 	return process(dc)
 }
 
-func (dc *DeepCopier) Create(ctx context.Context, t reflect.Type) any {
+func (dc *DeepCopier) Create(t reflect.Type) any {
 	dc.dst = reflect.New(t).Interface()
 	if err := process(dc); err != nil {
 		fmt.Printf("DeepCopier.Create failed, err: %v\n\n", err)

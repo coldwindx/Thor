@@ -5,7 +5,7 @@ import (
 	"Thor/src/mapper"
 	"Thor/src/models"
 	"Thor/src/models/do"
-	"Thor/utils/beans"
+	"Thor/utils"
 	"Thor/utils/inject"
 	"context"
 )
@@ -26,7 +26,7 @@ type JobServiceImpl struct {
 func (jsl *JobServiceImpl) Create(ctx context.Context, job *models.Job) (int64, error) {
 	// 转换为DO对象
 	jobDo := &do.Job{}
-	if err := beans.Copy(job).To(jobDo); err != nil {
+	if err := utils.Copy(job).To(jobDo); err != nil {
 		return 0, err
 	}
 	// 插入job

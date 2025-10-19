@@ -2,12 +2,13 @@ package initializer
 
 import (
 	"Thor/bootstrap"
+	"Thor/utils/inject"
 	"github.com/gin-gonic/gin"
 )
 
 func init() {
-	v := &RouterInitializer{name: "router", order: 500}
-	bootstrap.Manager[v.name] = v
+	v := &RouterInitializer{name: "RouterInitializer", order: 500}
+	bootstrap.Beans.Provide(&inject.Object{Name: v.GetName(), Value: v})
 }
 
 type RouterInitializer struct {

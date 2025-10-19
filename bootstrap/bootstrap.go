@@ -16,8 +16,6 @@ import (
 	"time"
 )
 
-var Manager = make(map[string]Initializer)
-
 func init() {
 	Beans.Provide(&inject.Object{Name: "bootstrap.Factory", Value: &Factory{}, Private: true})
 }

@@ -1,4 +1,4 @@
-package config
+package bootstrap
 
 var Config = new(Configuration)
 

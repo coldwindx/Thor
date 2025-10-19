@@ -1,12 +1,13 @@
-package bootstrap
+package initializer
 
 import (
+	"Thor/bootstrap"
 	"github.com/gin-gonic/gin"
 )
 
 func init() {
 	v := &RouterInitializer{name: "router", order: 500}
-	Manager[v.name] = v
+	bootstrap.Manager[v.name] = v
 }
 
 type RouterInitializer struct {
@@ -21,7 +22,7 @@ func (t *RouterInitializer) GetOrder() int {
 	return t.order
 }
 func (*RouterInitializer) Initialize() {
-	Router = gin.Default()
+	bootstrap.Router = gin.Default()
 }
 
 func (*RouterInitializer) Close() {

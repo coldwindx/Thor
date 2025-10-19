@@ -6,8 +6,9 @@ import (
 
 // Method 表示一个方法的元数据
 type Method struct {
-	Name string       // 方法名
-	Type reflect.Type // 方法类型
+	Name string            // 方法名
+	Type reflect.Type      // 方法类型
+	Tag  reflect.StructTag // 方法的tag
 }
 
 // Invoke 调用原始方法

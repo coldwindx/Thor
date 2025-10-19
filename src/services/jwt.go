@@ -2,7 +2,6 @@ package services
 
 import (
 	"Thor/bootstrap"
-	"Thor/config"
 	"Thor/utils"
 	"Thor/utils/inject"
 	"context"
@@ -46,14 +45,14 @@ type TokenOutPut struct {
 
 func (service *jwtService) CreateToken(GuardName string, user JwtUser) (TokenOutPut, error, *jwt.Token) {
 	claims := jwt.StandardClaims{
-		ExpiresAt: time.Now().Unix() + config.Config.Jwt.JwtTtl,
+		ExpiresAt: time.Now().Unix() + bootstrap.Config.Jwt.JwtTtl,
 		Id:        user.GetUid(),
 		Issuer:    GuardName, // 用于在中间件中区分不同客户端颁发的token
 		NotBefore: time.Now().Unix() - 1000,
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, CustomClaims{StandardClaims: claims})
-	tokenStr, err := token.SignedString([]byte(config.Config.Jwt.Secret))
-	return TokenOutPut{tokenStr, int(config.Config.Jwt.JwtTtl), TokenType}, err, token
+	tokenStr, err := token.SignedString([]byte(bootstrap.Config.Jwt.Secret))
+	return TokenOutPut{tokenStr, int(bootstrap.Config.Jwt.JwtTtl), TokenType}, err, token
 }
 
 func (service *jwtService) getBlackListKey(token string) string {
@@ -84,7 +83,7 @@ func (service *jwtService) IsInBlackList(token string) bool {
 		bootstrap.Logger.Error("strconv value fail.", zap.Any("value", joinUnixStr), zap.Any("err", err))
 		return false
 	}
-	return config.Config.Jwt.JwtBlacklistGracePeriod <= time.Now().Unix()-joinUnix
+	return bootstrap.Config.Jwt.JwtBlacklistGracePeriod <= time.Now().Unix()-joinUnix
 }
 
 func (service *jwtService) GetUserInfo(GuardName string, id string) (err error, user JwtUser) {

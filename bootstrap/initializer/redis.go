@@ -1,7 +1,7 @@
-package bootstrap
+package initializer
 
 import (
-	"Thor/config"
+	"Thor/bootstrap"
 	"Thor/utils/inject"
 	"context"
 	"github.com/go-redis/redis/v8"
@@ -10,7 +10,7 @@ import (
 
 func init() {
 	v := &RedisInitializer{name: "RedisInitializer", order: 3}
-	Beans.Provide(&inject.Object{Name: v.GetName(), Value: v, Completed: true})
+	bootstrap.Beans.Provide(&inject.Object{Name: v.GetName(), Value: v, Completed: true})
 }
 
 type RedisInitializer struct {
@@ -26,15 +26,15 @@ func (ins *RedisInitializer) GetOrder() int {
 }
 func (ins *RedisInitializer) Initialize() {
 	client := redis.NewClient(&redis.Options{
-		Addr:     config.Config.Redis.Host + ":" + strconv.Itoa(config.Config.Redis.Port),
-		Password: config.Config.Redis.Password,
-		DB:       config.Config.Redis.DB,
+		Addr:     bootstrap.Config.Redis.Host + ":" + strconv.Itoa(bootstrap.Config.Redis.Port),
+		Password: bootstrap.Config.Redis.Password,
+		DB:       bootstrap.Config.Redis.DB,
 	})
 
 	if _, err := client.Ping(context.Background()).Result(); err != nil {
 		panic(err)
 	}
-	Beans.Provide(&inject.Object{Name: "RedisClient", Value: client, Completed: true})
+	bootstrap.Beans.Provide(&inject.Object{Name: "RedisClient", Value: client, Completed: true})
 }
 func (ins *RedisInitializer) Close() {
 

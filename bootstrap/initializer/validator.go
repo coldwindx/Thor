@@ -1,6 +1,7 @@
-package bootstrap
+package initializer
 
 import (
+	"Thor/bootstrap"
 	"Thor/utils/inject"
 	"errors"
 	"github.com/gin-gonic/gin/binding"
@@ -12,7 +13,7 @@ import (
 
 func init() {
 	v := &ValidatorInitializer{name: "ValidatorInitializer", order: 500}
-	Beans.Provide(&inject.Object{Name: "ValidatorInitializer", Value: v, Completed: true})
+	bootstrap.Beans.Provide(&inject.Object{Name: "ValidatorInitializer", Value: v, Completed: true})
 }
 
 type ValidatorInitializer struct {

@@ -2,6 +2,7 @@ package mapper
 
 import (
 	"Thor/bootstrap"
+	"Thor/bootstrap/initializer"
 	"Thor/src/models/do"
 	"Thor/utils/inject"
 	"context"
@@ -20,8 +21,8 @@ type JobMapper struct {
 }
 
 type JobMapperImpl struct {
-	DB        *bootstrap.DBClient `inject:"DBClient"`
-	JobMapper *JobMapper          `bean:"JobMapper;proxy"`
+	DB        *initializer.DBClient `inject:"DBClient"`
+	JobMapper *JobMapper            `bean:"JobMapper;proxy"`
 }
 
 func (j *JobMapperImpl) Test(ctx context.Context) string {

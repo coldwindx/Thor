@@ -1,7 +1,6 @@
 package bootstrap
 
 import (
-	"Thor/config"
 	"Thor/utils/inject"
 	"context"
 	"errors"
@@ -56,7 +55,7 @@ func Close() {
 func Run() {
 	r := Router
 	srv := &http.Server{
-		Addr:    config.Config.Application.Host + ":" + strconv.Itoa(config.Config.Application.Port),
+		Addr:    Config.Application.Host + ":" + strconv.Itoa(Config.Application.Port),
 		Handler: r,
 	}
 	go func() {

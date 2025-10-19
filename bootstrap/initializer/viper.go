@@ -1,7 +1,7 @@
-package bootstrap
+package initializer
 
 import (
-	config2 "Thor/config"
+	"Thor/bootstrap"
 	"Thor/utils/inject"
 	"fmt"
 	"github.com/fsnotify/fsnotify"
@@ -11,7 +11,7 @@ import (
 
 func init() {
 	initializer := &ViperInitializer{name: "ViperInitializer", order: 1}
-	Beans.Provide(&inject.Object{Name: initializer.GetName(), Value: initializer, Completed: true})
+	bootstrap.Beans.Provide(&inject.Object{Name: initializer.GetName(), Value: initializer, Completed: true})
 }
 
 type ViperInitializer struct {
@@ -39,14 +39,14 @@ func (*ViperInitializer) Initialize() {
 		panic(fmt.Errorf("read config failed: %s \n", err))
 	}
 	// step3 加载配置信息
-	if err := v.Unmarshal(&config2.Config); err != nil {
+	if err := v.Unmarshal(&bootstrap.Config); err != nil {
 		fmt.Println(err)
 	}
 	// step4 监听配置文件
 	v.WatchConfig()
 	v.OnConfigChange(func(in fsnotify.Event) {
 		fmt.Println("config file changed: ", in.Name)
-		if err := v.Unmarshal(&config2.Config); err != nil {
+		if err := v.Unmarshal(&bootstrap.Config); err != nil {
 			fmt.Println(err)
 		}
 	})

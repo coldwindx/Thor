@@ -1,7 +1,7 @@
-package bootstrap
+package initializer
 
 import (
-	"Thor/config"
+	"Thor/bootstrap"
 	"Thor/utils/inject"
 	"go.uber.org/zap"
 	"gopkg.in/natefinch/lumberjack.v2"
@@ -17,7 +17,7 @@ import (
 
 func init() {
 	initializer := &DatabaseInitializer{name: "DatabaseInitializer", order: 100}
-	Beans.Provide(&inject.Object{Name: initializer.GetName(), Value: initializer, Completed: true})
+	bootstrap.Beans.Provide(&inject.Object{Name: initializer.GetName(), Value: initializer, Completed: true})
 }
 
 type DatabaseInitializer struct {
@@ -32,7 +32,7 @@ func (t *DatabaseInitializer) GetOrder() int {
 	return t.order
 }
 func (t *DatabaseInitializer) Initialize() {
-	dbConfig := config.Config.Database
+	dbConfig := bootstrap.Config.Database
 	if "" == dbConfig.Database {
 		return
 	}
@@ -50,19 +50,19 @@ func (t *DatabaseInitializer) Initialize() {
 		Logger:                                   getGormLogger(),
 	})
 	if nil != err {
-		Logger.Error("mysql connect failed, err:", zap.Any("err", err))
+		bootstrap.Logger.Error("mysql connect failed, err:", zap.Any("err", err))
 		return
 	}
 	sqlDB, _ := db.DB()
 	sqlDB.SetMaxIdleConns(dbConfig.MaxIdleConns)
 	sqlDB.SetMaxOpenConns(dbConfig.MaxOpenConns)
 	// 管理数据库连接
-	Beans.Provide(&inject.Object{Name: "MysqlConnection", Value: db, Completed: true})
-	Beans.Provide(&inject.Object{Name: "DBClient", Value: &DBClient{db: db}, Completed: true})
+	bootstrap.Beans.Provide(&inject.Object{Name: "MysqlConnection", Value: db, Completed: true})
+	bootstrap.Beans.Provide(&inject.Object{Name: "DBClient", Value: &DBClient{db: db}, Completed: true})
 }
 
 func (t *DatabaseInitializer) Close() {
-	db := Beans.GetByName("MysqlConnection").(*gorm.DB)
+	db := bootstrap.Beans.GetByName("MysqlConnection").(*gorm.DB)
 	if db != nil {
 		sqlDB, _ := db.DB()
 		_ = sqlDB.Close()
@@ -72,13 +72,13 @@ func (t *DatabaseInitializer) Close() {
 // 自定义gorm writer
 func getGormLogWriter() logger.Writer {
 	var writer io.Writer = os.Stdout
-	if config.Config.Database.EnableFileLogWriter {
+	if bootstrap.Config.Database.EnableFileLogWriter {
 		writer = &lumberjack.Logger{
-			Filename:   config.Config.Log.Dir + "/" + config.Config.Database.LogFilename,
-			MaxSize:    config.Config.Log.MaxSize,
-			MaxBackups: config.Config.Log.MaxBackups,
-			MaxAge:     config.Config.Log.MaxAge,
-			Compress:   config.Config.Log.Compress,
+			Filename:   bootstrap.Config.Log.Dir + "/" + bootstrap.Config.Database.LogFilename,
+			MaxSize:    bootstrap.Config.Log.MaxSize,
+			MaxBackups: bootstrap.Config.Log.MaxBackups,
+			MaxAge:     bootstrap.Config.Log.MaxAge,
+			Compress:   bootstrap.Config.Log.Compress,
 		}
 	}
 	return log.New(writer, "\r\n", log.LstdFlags)
@@ -86,7 +86,7 @@ func getGormLogWriter() logger.Writer {
 
 func getGormLogger() logger.Interface {
 	var logMode logger.LogLevel
-	switch config.Config.Database.LogMode {
+	switch bootstrap.Config.Database.LogMode {
 	case "silent":
 		logMode = logger.Silent
 	case "error":
@@ -102,6 +102,6 @@ func getGormLogger() logger.Interface {
 		SlowThreshold:             200 * time.Microsecond,
 		LogLevel:                  logMode,
 		IgnoreRecordNotFoundError: true,
-		Colorful:                  !config.Config.Database.EnableFileLogWriter,
+		Colorful:                  !bootstrap.Config.Database.EnableFileLogWriter,
 	})
 }

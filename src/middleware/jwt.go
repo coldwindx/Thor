@@ -3,7 +3,6 @@ package middleware
 import (
 	"Thor/bootstrap"
 	"Thor/common"
-	"Thor/config"
 	"Thor/src/services"
 	"Thor/tools"
 	"github.com/dgrijalva/jwt-go"
@@ -23,7 +22,7 @@ func JWTAuth(GuardName string) gin.HandlerFunc {
 		auth = auth[len(services.TokenType)+1:]
 		// token解析校验
 		token, err := jwt.ParseWithClaims(auth, &services.CustomClaims{}, func(token *jwt.Token) (interface{}, error) {
-			return []byte(config.Config.Jwt.Secret), nil
+			return []byte(bootstrap.Config.Jwt.Secret), nil
 		})
 		if nil != err {
 			common.Fail(c, common.Errors.TokenError.Code, common.Errors.TokenError.Message)
@@ -44,8 +43,8 @@ func JWTAuth(GuardName string) gin.HandlerFunc {
 			return
 		}
 		// token续签
-		if claims.ExpiresAt-time.Now().Unix() < config.Config.Jwt.RefreshGracePeriod {
-			lock := tools.Lock("refresh_token_lock", config.Config.Jwt.JwtBlacklistGracePeriod)
+		if claims.ExpiresAt-time.Now().Unix() < bootstrap.Config.Jwt.RefreshGracePeriod {
+			lock := tools.Lock("refresh_token_lock", bootstrap.Config.Jwt.JwtBlacklistGracePeriod)
 			if lock.Get() {
 				err, user := services.JwtService.GetUserInfo(GuardName, claims.Id)
 				if nil != err {

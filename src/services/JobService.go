@@ -7,11 +7,12 @@ import (
 	"Thor/src/models/do"
 	"Thor/utils"
 	"Thor/utils/inject"
+	"Thor/utils/proxy"
 	"context"
 )
 
 func init() {
-	bootstrap.Beans.CycleProvide(&inject.Object{Name: "JobServiceImpl", Value: new(JobServiceImpl)})
+	proxy.CycleProvide(bootstrap.Beans, &inject.Object{Name: "JobServiceImpl", Value: new(JobServiceImpl)})
 }
 
 type JobService struct {

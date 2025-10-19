@@ -5,12 +5,13 @@ import (
 	"Thor/bootstrap/initializer"
 	"Thor/src/models/do"
 	"Thor/utils/inject"
+	"Thor/utils/proxy"
 	"context"
 	"gorm.io/gorm"
 )
 
 func init() {
-	bootstrap.Beans.CycleProvide(&inject.Object{Name: "JobMapperImpl", Value: new(JobMapperImpl)})
+	proxy.CycleProvide(bootstrap.Beans, &inject.Object{Name: "JobMapperImpl", Value: new(JobMapperImpl)})
 }
 
 type JobMapper struct {

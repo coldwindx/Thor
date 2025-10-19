@@ -1,8 +1,6 @@
 package inject
 
 import (
-	"Thor/utils/invoke"
-	"Thor/utils/proxy"
 	"github.com/samber/lo"
 	"reflect"
 	"strings"
@@ -39,13 +37,6 @@ func (g *Graph) CycleProvide(objs ...*Object) {
 			// 需要自动创建bean对象
 			bean := reflect.New(field.Type.Elem()).Interface()
 			g.Provide(&Object{Name: name, Value: bean})
-			// 自动代理
-			if len(tags) <= 1 || tags[1] != "proxy" {
-				continue
-			}
-			proxy.NewMethodProxy(bean, func(_ any, method *invoke.Method, args []reflect.Value) []reflect.Value {
-				return method.Invoke(obj.Value, args)
-			})
 		}
 
 		// 检查Bean实例是否是指针类型

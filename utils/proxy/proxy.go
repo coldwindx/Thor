@@ -1,11 +1,12 @@
 package proxy
 
 import (
+	"Thor/utils/inject"
 	"Thor/utils/invoke"
+	"github.com/samber/lo"
 	"reflect"
+	"strings"
 )
-
-var GlobalMethodProxyPublisher = make([]MethodProxyWrapper, 0)
 
 // NewMethodProxy 创建一个代理对象
 // itf: 接口指针
@@ -34,25 +35,9 @@ func NewMethodProxy(itf any, handler invoke.InvocationMethod) any {
 		//fmt.Println("[proxy] >>>", field.Name, field.Type)
 		// 创建代理方法
 		proxy := reflect.MakeFunc(field.Type, func(args []reflect.Value) []reflect.Value {
-			// 获取可行代理
-			wrappers := make([]MethodProxyPackage, 0)
-			for _, wrapper := range GlobalMethodProxyPublisher {
-				if valid, tag := wrapper.Validate(field); valid {
-					w := MethodProxyPackage{TagName: wrapper.Tag(), TagValue: tag, Wrapper: wrapper}
-					wrappers = append(wrappers, w)
-				}
-			}
-			// 前置代理
-			for _, w := range wrappers {
-				w.Wrapper.Before(w.TagValue, itf, args)
-			}
 			// 调用原始方法
 			invocation := &invoke.Method{Name: field.Name, Type: field.Type}
 			results := handler(itf, invocation, args)
-			// 后置代理
-			for _, w := range wrappers {
-				w.Wrapper.After(w.TagValue, itf, args, results)
-			}
 			return results
 		})
 		value.Set(proxy)
@@ -60,16 +45,46 @@ func NewMethodProxy(itf any, handler invoke.InvocationMethod) any {
 	return itf
 }
 
-// MethodProxyWrapper 具体的方法代理订阅者
-type MethodProxyWrapper interface {
-	Tag() string
-	Validate(field reflect.StructField) (bool, string)
-	Before(string, any, []reflect.Value)
-	After(string, any, []reflect.Value, []reflect.Value)
-}
-
-type MethodProxyPackage struct {
-	TagName  string
-	TagValue string
-	Wrapper  MethodProxyWrapper
+// CycleProvide 循环提供Bean实例，需要制定bean tag标签
+func CycleProvide(g *inject.Graph, objs ...*inject.Object) {
+	// 遍历objs数组
+	for _, obj := range objs {
+		obj.RfType = reflect.TypeOf(obj.Value)
+		obj.RfValue = reflect.ValueOf(obj.Value)
+		// 遍历obj的所有属性值
+		for i := 0; i < obj.RfType.Elem().NumField(); i++ {
+			// 获取属性的类型
+			field := obj.RfType.Elem().Field(i)
+			fieldValue := obj.RfValue.Elem().Field(i)
+			// 跳过不能设置的属性，或者属性不是对象指针类型
+			if !fieldValue.CanSet() || field.Type.Kind() != reflect.Ptr || field.Type.Elem().Kind() != reflect.Struct {
+				continue
+			}
+			// 获取这个属性的tag标签
+			tag, ok := field.Tag.Lookup("bean")
+			if !ok {
+				continue
+			}
+			// 根据;分割字符串，获取 bean的名称 和 bean的代理模式
+			tags := strings.Split(tag, ";")
+			// 如果没有指定bean tag的名称，则默认使用属性的类型名称
+			name := lo.Ternary(len(tags[0]) == 0, field.Type.Elem().Name(), tags[0])
+			// 根据tag标签，从容器中获取对应的bean对象，如果存在，说明不需要自动创建
+			if ok = g.ExistByName(name); ok {
+				continue
+			}
+			// 需要自动创建bean对象
+			bean := reflect.New(field.Type.Elem()).Interface()
+			g.Provide(&inject.Object{Name: name, Value: bean})
+			// 自动代理
+			if len(tags) <= 1 || tags[1] != "proxy" {
+				continue
+			}
+			NewMethodProxy(bean, func(_ any, method *invoke.Method, args []reflect.Value) []reflect.Value {
+				return method.Invoke(obj.Value, args)
+			})
+		}
+	}
+	// 注入原始bean
+	g.Provide(objs...)
 }

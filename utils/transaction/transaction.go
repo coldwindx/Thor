@@ -1,60 +1,49 @@
 package transaction
 
 import (
-	"Thor/utils/proxy"
+	"Thor/bootstrap"
+	"Thor/utils/aop"
+	"Thor/utils/inject"
 	"context"
-	"fmt"
+	"errors"
+	"github.com/samber/lo"
 	"reflect"
 )
 
 func init() {
-	proxy.GlobalMethodProxyPublisher = append(proxy.GlobalMethodProxyPublisher, &TransactionProxySubscriber{})
+	bootstrap.Beans.Provide(&inject.Object{Name: "aop.Transaction", Value: &TransactionAspect{}})
 }
 
-type TransactionProxySubscriber struct{}
-
-func (t *TransactionProxySubscriber) Before(tag string, obj any, args []reflect.Value) {
-	if len(args) == 0 {
-		return
-	}
-	// 从argos中获取第一个参数，并转换为context.Context类型
-	ctx := args[0].Interface().(context.Context)
-	// 给ctx添加一个transaction key
-	ctx = context.WithValue(ctx, "transaction", tag)
-	// 更新args[0]为新的context.Context对象
-	args[0] = reflect.ValueOf(ctx)
-	// 打印日志
-	fmt.Println("[transaction] >>>", tag, obj, args)
+// TransactionAspect 事务切面
+type TransactionAspect struct {
 }
 
-func (t *TransactionProxySubscriber) After(tag string, obj any, args []reflect.Value, results []reflect.Value) {
-	if len(args) == 0 || len(results) == 0 {
-		return
+func (t TransactionAspect) Around(jcp *aop.ProceedingJoinPoint) []reflect.Value {
+	client := bootstrap.Beans.GetByName("DBClient").(*bootstrap.DBClient)
+	// 从切面中获取方法请求参数
+	args := jcp.Args
+	if 0 == len(args) {
+		panic("first argument must be context.Context when use transaction aspect")
 	}
-	// 从args中获取第一个参数，并转换为context.Context类型
-	ctx := args[0].Interface().(context.Context)
-	// 打印ctx中的transaction key
-	fmt.Println("[transaction] ctx key >>>", ctx.Value("transaction"))
-	// 从results中获取第一个参数，并转换为error类型
-	err, ok := results[0].Interface().(error)
+	ctx, ok := jcp.Args[0].Interface().(context.Context)
 	if !ok {
-		return
+		panic("first argument must be context.Context when use transaction aspect")
 	}
-	// 如果err不为空，说明事务执行过程中发生了错误
-	if err != nil {
-		// 打印日志
-		fmt.Println("[transaction] <<<", tag, obj, args, results, err)
-	} else {
-		// 打印日志
-		fmt.Println("[transaction] <<<", tag, obj, args, results)
+	// 开启事务
+	var res []reflect.Value
+	if err := client.Transaction(ctx, func(ctx context.Context) error {
+		// 执行目标方法
+		res = jcp.Proceed()
+		// 检查目标方法是否返回错误
+		if 0 == len(res) {
+			return errors.New("must return at least one error when use transaction aspect")
+		}
+		// 检查目标方法是否返回错误
+		errVal, ok := res[len(res)-1].Interface().(error)
+		return lo.Ternary(ok, errVal, errors.New("must return error at last when use transaction aspect"))
+	}); err != nil {
+		panic(err)
 	}
-}
-
-func (t *TransactionProxySubscriber) Tag() string {
-	return "transaction"
-}
-
-func (t *TransactionProxySubscriber) Validate(field reflect.StructField) (bool, string) {
-	value, ok := field.Tag.Lookup(t.Tag())
-	return ok, value
+	// 返回目标方法的执行结果
+	return res
 }

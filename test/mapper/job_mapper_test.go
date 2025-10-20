@@ -2,7 +2,6 @@ package mapper
 
 import (
 	"Thor/bootstrap"
-	"Thor/bootstrap/initializer"
 	"Thor/src/mapper"
 	"Thor/src/models/do"
 	"context"
@@ -32,7 +31,7 @@ func TestNoTransaction(t *testing.T) {
 
 	flag := false
 
-	client := bootstrap.Beans.GetByName("DBClient").(*initializer.DBClient)
+	client := bootstrap.Beans.GetByName("DBClient").(*bootstrap.DBClient)
 	jobMapper := bootstrap.Beans.GetByName("JobMapper").(*mapper.JobMapper)
 
 	err := client.Transaction(context.Background(), func(ctx context.Context) error {
@@ -58,7 +57,7 @@ func TestTransaction(t *testing.T) {
 
 	flag := true
 
-	client := bootstrap.Beans.GetByName("DBClient").(*initializer.DBClient)
+	client := bootstrap.Beans.GetByName("DBClient").(*bootstrap.DBClient)
 	jobMapper := bootstrap.Beans.GetByName("JobMapper").(*mapper.JobMapper)
 
 	err := client.Transaction(context.Background(), func(ctx context.Context) error {

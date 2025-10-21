@@ -8,7 +8,7 @@ import (
 
 func init() {
 	v := &RouterInitializer{name: "RouterInitializer", order: 500}
-	bootstrap.Beans.Provide(&inject.Object{Name: v.GetName(), Value: v})
+	bootstrap.Beans.Provide(&inject.Object{Name: v.GetName(), Value: v, Completed: true})
 }
 
 type RouterInitializer struct {
@@ -23,7 +23,8 @@ func (t *RouterInitializer) GetOrder() int {
 	return t.order
 }
 func (*RouterInitializer) Initialize() {
-	bootstrap.Router = gin.Default()
+	// step 初始化路由
+	bootstrap.Beans.Provide(&inject.Object{Name: "Router", Value: gin.Default(), Completed: true})
 }
 
 func (*RouterInitializer) Close() {

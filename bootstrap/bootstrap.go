@@ -5,6 +5,7 @@ import (
     "context"
     "errors"
     "fmt"
+    "github.com/gin-gonic/gin"
     "github.com/samber/lo"
     "log"
     "net/http"
@@ -51,7 +52,7 @@ func Close() {
 }
 
 func Run() {
-    r := Router
+    r := Beans.GetByName("Router").(*gin.Engine)
     srv := &http.Server{
         Addr:    Config.Application.Host + ":" + strconv.Itoa(Config.Application.Port),
         Handler: r,
@@ -64,9 +65,9 @@ func Run() {
     }()
     // step 初始化路由
     fmt.Println("init route")
-    for _, route := range Routes {
-        route(Router)
-    }
+    controllers := Beans.GetByType(new(Controller))
+    lo.ForEach(controllers, func(ctrl any, _ int) { ctrl.(Controller).Routes(r) })
+
     // step 等待信号，优雅关闭
     quit := make(chan os.Signal)
     signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)

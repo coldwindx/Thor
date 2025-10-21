@@ -3,7 +3,6 @@ package initializer
 import (
 	"Thor/bootstrap"
 	"Thor/bootstrap/inject"
-	"go.uber.org/zap"
 	"gopkg.in/natefinch/lumberjack.v2"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -50,8 +49,7 @@ func (t *DatabaseInitializer) Initialize() {
 		Logger:                                   getGormLogger(),
 	})
 	if nil != err {
-		bootstrap.Logger.Error("mysql connect failed, err:", zap.Any("err", err))
-		return
+		panic("mysql connect failed, err: " + err.Error())
 	}
 	sqlDB, _ := db.DB()
 	sqlDB.SetMaxIdleConns(dbConfig.MaxIdleConns)

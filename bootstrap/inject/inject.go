@@ -84,9 +84,10 @@ func (g *Graph) GetByName(name string) any {
 
 func (g *Graph) GetByType(x any) []any {
 	results := make([]any, 0)
+	xtype := reflect.TypeOf(x).Elem()
 	// 遍历bean容器
 	for _, obj := range g.objects {
-		if obj.RfType.AssignableTo(reflect.TypeOf(x).Elem()) {
+		if obj.RfType.AssignableTo(xtype) {
 			results = append(results, obj.Value)
 		}
 	}
@@ -288,7 +289,7 @@ func (n *NamedStructInjector) Inject(g *Graph, fieldVal reflect.Value, fieldType
 	}
 	// 检查依赖的bean对象是否是目标属性的类型或子类型
 	if !existing.RfType.Elem().AssignableTo(fieldType.Elem()) {
-		panic(fmt.Sprintf("object named [%s] of type [%s] is not assignable to field [%s] in type [%s]", existing.Name, existing.RfType.Name(), fieldVal.Type().Name(), fieldType.Name()))
+		panic(fmt.Sprintf("object named [%s] of type [%s] is not assignable to field [%s] in type [%s]", existing.Name, existing.RfType.String(), fieldVal.Type().String(), fieldType.String()))
 	}
 
 	// 进行依赖注入

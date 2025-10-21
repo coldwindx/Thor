@@ -4,6 +4,7 @@ import (
 	"Thor/bootstrap"
 	"Thor/utils/aop"
 	"Thor/utils/inject"
+	"Thor/utils/invoke"
 	"context"
 	"errors"
 	"github.com/samber/lo"
@@ -18,14 +19,20 @@ func init() {
 type TransactionAspect struct {
 }
 
+func (t *TransactionAspect) Pointcut(method *invoke.Method) bool {
+	// 检查方法是否有 Transaction 标签
+	_, ok := method.Tag.Lookup("transaction")
+	return ok
+}
+
 func (t TransactionAspect) Around(jcp *aop.ProceedingJoinPoint) []reflect.Value {
 	client := bootstrap.Beans.GetByName("DBClient").(*bootstrap.DBClient)
 	// 从切面中获取方法请求参数
-	args := jcp.Args
+	args := jcp.GetArgs()
 	if 0 == len(args) {
 		panic("first argument must be context.Context when use transaction aspect")
 	}
-	ctx, ok := jcp.Args[0].Interface().(context.Context)
+	ctx, ok := args[0].Interface().(context.Context)
 	if !ok {
 		panic("first argument must be context.Context when use transaction aspect")
 	}

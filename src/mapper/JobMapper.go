@@ -14,7 +14,7 @@ func init() {
 }
 
 type JobMapper struct {
-	Test   func(ctx context.Context) string `transaction:"read"`
+	Test   func(ctx context.Context) string
 	Insert func(ctx context.Context, job *do.Job) (int64, error)
 	Query  func(ctx context.Context, query *do.JobQuery) ([]*do.Job, error)
 	Delete func(jobQuery do.JobQuery) (int, error)

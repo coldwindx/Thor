@@ -16,7 +16,7 @@ func init() {
 }
 
 type JobService struct {
-	Create func(ctx context.Context, job *models.Job) (int64, error)
+	Create func(ctx context.Context, job *models.Job) (int64, error) `transaction:""`
 }
 
 type JobServiceImpl struct {

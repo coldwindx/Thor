@@ -58,7 +58,7 @@ func (t *DatabaseInitializer) Initialize() {
 	sqlDB.SetMaxOpenConns(dbConfig.MaxOpenConns)
 	// 管理数据库连接
 	bootstrap.Beans.Provide(&inject.Object{Name: "MysqlConnection", Value: db, Completed: true})
-	bootstrap.Beans.Provide(&inject.Object{Name: "DBClient", Value: &bootstrap.DBClient{db: db}, Completed: true})
+	bootstrap.Beans.Provide(&inject.Object{Name: "DBClient", Value: &bootstrap.DBClient{Db: db}, Completed: true})
 }
 
 func (t *DatabaseInitializer) Close() {

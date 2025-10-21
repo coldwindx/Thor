@@ -2,10 +2,10 @@ package services
 
 import (
 	"Thor/bootstrap"
+	"Thor/bootstrap/inject"
 	"Thor/src/models"
 	"Thor/src/request"
 	"Thor/utils"
-	"Thor/utils/inject"
 	"errors"
 	"gorm.io/gorm"
 	"strconv"

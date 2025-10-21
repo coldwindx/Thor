@@ -2,8 +2,8 @@ package aop
 
 import (
 	"Thor/bootstrap"
-	"Thor/utils/inject"
-	"Thor/utils/invoke"
+	"Thor/bootstrap/inject"
+	"Thor/bootstrap/invoke"
 	"reflect"
 )
 

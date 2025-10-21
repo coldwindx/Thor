@@ -2,10 +2,10 @@ package aop
 
 import (
 	"Thor/bootstrap"
+	_ "Thor/bootstrap/aop/transaction"
 	_ "Thor/bootstrap/initializer"
 	"Thor/src/models"
 	"Thor/src/services"
-	_ "Thor/utils/transaction"
 	"context"
 	"github.com/stretchr/testify/assert"
 	"os"

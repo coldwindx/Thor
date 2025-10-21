@@ -2,7 +2,7 @@ package initializer
 
 import (
 	"Thor/bootstrap"
-	"Thor/utils/inject"
+	"Thor/bootstrap/inject"
 	"context"
 	"github.com/go-redis/redis/v8"
 	"strconv"

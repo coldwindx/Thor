@@ -1,7 +1,7 @@
 package bootstrap
 
 import (
-	"Thor/utils/inject"
+	"Thor/bootstrap/inject"
 	"github.com/gin-gonic/gin"
 	"github.com/streadway/amqp"
 	"go.uber.org/zap"

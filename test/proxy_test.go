@@ -2,10 +2,10 @@ package test
 
 import (
 	"Thor/bootstrap"
+	"Thor/bootstrap/invoke"
+	proxy2 "Thor/bootstrap/proxy"
 	"Thor/src/mapper"
 	_ "Thor/src/mapper"
-	"Thor/utils/invoke"
-	proxy2 "Thor/utils/proxy"
 	_ "Thor/utils/transaction"
 	"context"
 	"fmt"

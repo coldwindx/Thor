@@ -2,9 +2,9 @@ package mapper
 
 import (
 	"Thor/bootstrap"
+	"Thor/bootstrap/inject"
+	"Thor/bootstrap/proxy"
 	"Thor/src/models/do"
-	"Thor/utils/inject"
-	"Thor/utils/proxy"
 	"context"
 	"gorm.io/gorm"
 )

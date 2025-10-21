@@ -1,7 +1,7 @@
 package test
 
 import (
-	"Thor/utils/inject"
+	"Thor/bootstrap/inject"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )

@@ -5,8 +5,8 @@ package main
 
 import (
 	"Thor/bootstrap"
+	_ "Thor/bootstrap/proxy"
 	_ "Thor/statik"
-	_ "Thor/utils/transaction"
 	"time"
 )
 

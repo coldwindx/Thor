@@ -2,8 +2,8 @@ package services
 
 import (
 	"Thor/bootstrap"
+	"Thor/bootstrap/inject"
 	"Thor/utils"
-	"Thor/utils/inject"
 	"context"
 	"errors"
 	"github.com/dgrijalva/jwt-go"

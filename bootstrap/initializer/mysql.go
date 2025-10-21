@@ -2,7 +2,7 @@ package initializer
 
 import (
 	"Thor/bootstrap"
-	"Thor/utils/inject"
+	"Thor/bootstrap/inject"
 	"go.uber.org/zap"
 	"gopkg.in/natefinch/lumberjack.v2"
 	"gorm.io/driver/mysql"

@@ -2,12 +2,12 @@ package services
 
 import (
 	"Thor/bootstrap"
+	"Thor/bootstrap/inject"
+	"Thor/bootstrap/proxy"
 	"Thor/src/mapper"
 	"Thor/src/models"
 	"Thor/src/models/do"
 	"Thor/utils"
-	"Thor/utils/inject"
-	"Thor/utils/proxy"
 	"context"
 )
 

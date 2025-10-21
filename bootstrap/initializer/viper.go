@@ -2,7 +2,7 @@ package initializer
 
 import (
 	"Thor/bootstrap"
-	"Thor/utils/inject"
+	"Thor/bootstrap/inject"
 	"fmt"
 	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/viper"

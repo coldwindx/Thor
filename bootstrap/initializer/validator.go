@@ -2,7 +2,7 @@ package initializer
 
 import (
 	"Thor/bootstrap"
-	"Thor/utils/inject"
+	"Thor/bootstrap/inject"
 	"errors"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"

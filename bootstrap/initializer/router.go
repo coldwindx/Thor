@@ -2,7 +2,7 @@ package initializer
 
 import (
 	"Thor/bootstrap"
-	"Thor/utils/inject"
+	"Thor/bootstrap/inject"
 	"github.com/gin-gonic/gin"
 )
 

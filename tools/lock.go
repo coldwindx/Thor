@@ -1,25 +1,25 @@
 package tools
 
 import (
-	"Thor/bootstrap"
-	"Thor/utils"
-	"context"
-	"github.com/go-redis/redis/v8"
-	"time"
+    "Thor/bootstrap"
+    "Thor/utils"
+    "context"
+    "github.com/redis/go-redis/v9"
+    "time"
 )
 
 type Interface interface {
-	Get() bool
-	Block(seconds int64) bool
-	Release() bool
-	ForceRelease()
+    Get() bool
+    Block(seconds int64) bool
+    Release() bool
+    ForceRelease()
 }
 
 type lock struct {
-	context context.Context
-	name    string
-	owner   string
-	seconds int64
+    context context.Context
+    name    string
+    owner   string
+    seconds int64
 }
 
 // 释放锁脚本，防止任何客户端都能解锁
@@ -33,44 +33,44 @@ const luaRelease = `
 
 // 生成锁
 func Lock(name string, seconds int64) Interface {
-	return &lock{
-		context.Background(),
-		name,
-		utils.RandString(16),
-		seconds,
-	}
+    return &lock{
+        context.Background(),
+        name,
+        utils.RandString(16),
+        seconds,
+    }
 }
 
 // 获取锁
 func (l *lock) Get() bool {
-	client := bootstrap.Beans.GetByName("RedisClient").(*redis.Client)
-	return client.SetNX(l.context, l.name, l.owner, time.Duration(l.seconds)*time.Second).Val()
+    client := bootstrap.Beans.GetByName("RedisClient").(*redis.Client)
+    return client.SetNX(l.context, l.name, l.owner, time.Duration(l.seconds)*time.Second).Val()
 }
 
 // 阻塞一段时间，尝试获取锁
 func (l *lock) Block(seconds int64) bool {
-	starting := time.Now().Unix()
-	for {
-		if l.Get() {
-			return true
-		}
-		time.Sleep(time.Duration(1) * time.Second)
-		if starting <= time.Now().Unix()-seconds {
-			return false
-		}
-	}
+    starting := time.Now().Unix()
+    for {
+        if l.Get() {
+            return true
+        }
+        time.Sleep(time.Duration(1) * time.Second)
+        if starting <= time.Now().Unix()-seconds {
+            return false
+        }
+    }
 }
 
 // 释放锁
 func (l *lock) Release() bool {
-	client := bootstrap.Beans.GetByName("RedisClient").(*redis.Client)
-	lua := redis.NewScript(luaRelease)
-	result := lua.Run(l.context, client, []string{l.name}, l.owner).Val().(int64)
-	return 0 != result
+    client := bootstrap.Beans.GetByName("RedisClient").(*redis.Client)
+    lua := redis.NewScript(luaRelease)
+    result := lua.Run(l.context, client, []string{l.name}, l.owner).Val().(int64)
+    return 0 != result
 }
 
 // 强制释放锁
 func (l *lock) ForceRelease() {
-	client := bootstrap.Beans.GetByName("RedisClient").(*redis.Client)
-	client.Del(l.context, l.name).Val()
+    client := bootstrap.Beans.GetByName("RedisClient").(*redis.Client)
+    client.Del(l.context, l.name).Val()
 }

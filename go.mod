@@ -7,7 +7,6 @@ require (
 	github.com/fsnotify/fsnotify v1.9.0
 	github.com/gin-gonic/gin v1.10.1
 	github.com/go-playground/validator/v10 v10.27.0
-	github.com/go-redis/redis/v8 v8.11.5
 	github.com/rakyll/statik v0.1.7
 	github.com/redis/go-redis/v9 v9.14.1
 	github.com/samber/lo v1.51.0
